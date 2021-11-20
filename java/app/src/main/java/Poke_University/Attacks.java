@@ -21,18 +21,18 @@ public class Attacks {
     private Attack interro = new Attack("Fatal-interro", Type.Teacher, 20);
 
     public Attacks(){
-    this.noisy_attacks[0] = bavardage;
-    this.noisy_attacks[1] = groboucan;
-    this.noisy_attacks[2] = megaphone;
-    this.lazy_attacks[0] = baillement;
-    this.lazy_attacks[1] = somme;
-    this.lazy_attacks[2] = superdodo;
-    this.lazy_attacks[3] = rateletrain;
-    this.motivated_attacks[0] = oboulo;
-    this.motivated_attacks[1] = maison;
-    this.motivated_attacks[2] = reviz;
-    this.teacher_attacks[0] = question;
-    this.teacher_attacks[1] = colle;
-    this.teacher_attacks[2] = interro;
+        this.noisy_attacks[0] = bavardage;
+        this.noisy_attacks[1] = groboucan;
+        this.noisy_attacks[2] = megaphone;
+        this.lazy_attacks[0] = baillement;
+        this.lazy_attacks[1] = somme;
+        this.lazy_attacks[2] = superdodo;
+        this.lazy_attacks[3] = rateletrain;
+        this.motivated_attacks[0] = oboulo;
+        this.motivated_attacks[1] = maison;
+        this.motivated_attacks[2] = reviz;
+        this.teacher_attacks[0] = question;
+        this.teacher_attacks[1] = colle;
+        this.teacher_attacks[2] = interro;
     }
 }
