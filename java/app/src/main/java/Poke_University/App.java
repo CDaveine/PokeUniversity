@@ -10,5 +10,8 @@ public class App {
 
     public static void main(String[] args) {
         System.out.println(new App().getGreeting());
+        Window window = new Window(1000,1000);
+        Panel pan = new Panel();
+
     }
 }
