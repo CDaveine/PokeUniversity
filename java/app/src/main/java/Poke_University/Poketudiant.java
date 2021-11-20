@@ -2,7 +2,7 @@ package Poke_University;
 
 import java.util.HashMap;
 
-public class Poketudiant {
+public abstract class Poketudiant {
     private Type type;
     private boolean catchable;
     private Poketudiant evolution;
