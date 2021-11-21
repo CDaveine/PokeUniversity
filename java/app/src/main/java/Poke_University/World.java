@@ -39,4 +39,20 @@ public class World {
         return this.map[i][j];
     }
 
+    public void printMap() {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if(map[i][j].getClass() == Floor.class){
+                    System.out.print("F ");
+                }
+                else if(map[i][j].getClass() == Bush.class){
+                    System.out.print("B ");
+                }
+                else{
+                    System.out.print("H ");
+                }
+            }
+            System.out.print("\n");
+        }
+    }
 }
