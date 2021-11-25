@@ -13,7 +13,7 @@ static void get_msg(char* msg){
 
 int main(int argc, char const *argv[])
 {
-    Client clt = client_create_udp("127.0.0.1", 9001);
+    Client clt = client_create_broadcast(9000);
 
     char buffer_send[SIZE];
     char buffer_recv[SIZE];

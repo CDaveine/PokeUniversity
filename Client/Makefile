@@ -13,10 +13,10 @@ obj/error.o: error.c
 	@mkdir -p obj
 	gcc -c error.c -o obj/error.o
 
-obj/error.o: color.c
+obj/color.o: color.c
 	@mkdir -p obj
 	gcc -c color.c -o obj/color.o
 
 clean:
-	@rm exec
+	@rm client
 	@rm -rf obj

@@ -19,4 +19,6 @@ typedef struct client *Client;
 
 Client client_create_udp(char *addr, int port);
 
+Client client_create_broadcast(int port);
+
 void client_close_and_free(struct client *this);

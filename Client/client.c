@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "client .h"
+#include "client.h"
 #include "error.h"
 
 ssize_t client_receive_udp(struct client *this, char *buf, size_t size){
@@ -40,6 +40,18 @@ Client client_create_udp( char *addr, int port){
 
     res->client_receive_udp = &client_receive_udp;
     res->client_send_udp = &client_send_udp;
+
+    return res;
+}
+
+Client client_create_broadcast(int port){
+    Client res = client_create_udp("255.255.255.255", port);
+    int broadcastEnable = 1;
+
+    if(setsockopt(res->sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable))){
+        client_close_and_free(res);
+        syserror(SOCKET_ERROR);
+    }
 
     return res;
 }
