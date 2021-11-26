@@ -1,6 +1,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
+
 
 #include "client.h"
 #include "error.h"
@@ -14,9 +16,19 @@ ssize_t client_receive_udp(struct client *this, char *buf, size_t size){
 }
 
 void client_send_udp(struct client *this, char *msg){
-    if(sendto(this->sock, msg, strlen(msg), 0, (struct sockaddr*) &this->addr, sizeof(struct sockaddr_in)) == ERR){
+    if(sendto(this->sock, msg, strlen(msg), 0, (struct sockaddr*) &this->addr, this->len) == ERR){
         syserror(SEND_ERROR);
     }
+}
+
+struct sockaddr_in * receive_server(struct client *this, char *buf, size_t size){
+    struct sockaddr_in *res = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
+    if(!buf){
+        return 0;
+    }
+
+    recvfrom(this->sock, buf, size, MSG_DONTWAIT, (struct sockaddr*) &res, &this->len);
+    return res;
 }
 
 Client client_create_udp( char *addr, int port){
@@ -37,6 +49,8 @@ Client client_create_udp( char *addr, int port){
         client_close_and_free(res);
         syserror(SOCKET_ERROR);
     }
+
+    res->len = sizeof(struct sockaddr_in);
 
     res->client_receive_udp = &client_receive_udp;
     res->client_send_udp = &client_send_udp;

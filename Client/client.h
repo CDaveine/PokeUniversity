@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+
 struct client 
 {
     int sock;
@@ -20,5 +21,7 @@ typedef struct client *Client;
 Client client_create_udp(char *addr, int port);
 
 Client client_create_broadcast(int port);
+
+struct sockaddr_in * receive_server(struct client *this, char *buf, size_t size);
 
 void client_close_and_free(struct client *this);
