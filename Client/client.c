@@ -21,14 +21,12 @@ void client_send_udp(struct client *this, char *msg){
     }
 }
 
-struct sockaddr_in * receive_server(struct client *this, char *buf, size_t size){
-    struct sockaddr_in *res = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
+ssize_t receive_server(struct client *this, struct sockaddr_in *server, char *buf, size_t size){
     if(!buf){
         return 0;
     }
 
-    recvfrom(this->sock, buf, size, MSG_DONTWAIT, (struct sockaddr*) &res, &this->len);
-    return res;
+    return recvfrom(this->sock, buf, size, MSG_DONTWAIT, (struct sockaddr*) server, &this->len);
 }
 
 Client client_create_udp( char *addr, int port){
