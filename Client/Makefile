@@ -1,13 +1,17 @@
-client: main.o client.o error.o color.o
-	gcc -g -o client main.o client.o error.o color.o
+client: main.o clientbrc.o clientTCP.o error.o color.o
+	gcc -g -o client main.o clientbrc.o clientTCP.o error.o color.o
 
 obj/main.o: main.c
 	@mkdir -p obj
 	gcc -c main.c -o obj/main.o
 
-obj/client.o: client.c
+obj/clientbrc.o: clientbrc.c
 	@mkdir -p obj
-	gcc -c client.c -o obj/client.o
+	gcc -c clientbrc.c -o obj/clientbrc.o
+
+obj/clientTCP.o: clientTCP.c
+	@mkdir -p obj
+	gcc -c clientTCP.c -o obj/clientTCP.o
 
 obj/error.o: error.c
 	@mkdir -p obj
