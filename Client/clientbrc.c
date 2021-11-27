@@ -22,10 +22,9 @@ ssize_t client_receive_broadcast(struct clientbrc *this, struct sockaddr_in *ser
     return recvfrom(this->sock, buf, size, MSG_DONTWAIT, (struct sockaddr *) server, &this->len);
 }
 
-struct sockaddr_in ** client_receive_servers(struct clientbrc *this, const char *answer, int *nbserv){
+struct sockaddr_in ** client_receive_servers(struct clientbrc *this, const char *answer, char *buffer_recv, int bufsize, int *nbserv){
     time_t timer, endtimer, pointtimer;;
     struct sockaddr_in *server, **servers = (struct sockaddr_in**) malloc(sizeof(struct sockaddr_in*));
-    char buffer_recv[500];
     int ret, size, nbpoint;
 
     server = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
@@ -63,15 +62,14 @@ struct sockaddr_in ** client_receive_servers(struct clientbrc *this, const char 
             pointtimer = timer + 1;
         }
 
-        ret = this->client_receive_broadcast(this, server, buffer_recv, 500);
-
+        ret = this->client_receive_broadcast(this, server, buffer_recv, bufsize);
         if(ret != -1 && ret){
             if(!strncmp(buffer_recv, answer, size)){
                 if(*nbserv != 0){
                     servers = (struct sockaddr_in**) realloc(servers, (*nbserv+1) * sizeof(struct sockaddr_in*));
                 }
                 servers[*nbserv] = server;
-                *nbserv++;
+                *nbserv+=1;
                 server = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
             }
         }

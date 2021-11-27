@@ -6,7 +6,7 @@
 #include "error.h"
 
 void client_send_tcp(struct clientTCP *this, char *msg){
-    if(sendto(this->sock, msg, strlen(msg), 0, (struct sockaddr*) &this->addr, this->len) == ERR){
+    if(send(this->sock, msg, strlen(msg), 0) == ERR){
         syserror(SEND_ERROR);
     }
 }
@@ -16,7 +16,7 @@ ssize_t client_receive_tcp(struct clientTCP *this, char *buf, size_t size){
         return 0;
     }
 
-    return recvfrom(this->sock, buf, size, 0, (struct sockaddr *) &this->addr, &this->len);
+    return recv(this->sock, buf, size, 0);
 }
 
 ClientTCP client_create_tcp(char *addr, int port){
@@ -40,8 +40,8 @@ ClientTCP client_create_tcp(char *addr, int port){
 
     res->len = sizeof(struct sockaddr_in);
 
-    res->client_receive_tcp = &client_receive_tcp;
     res->client_send_tcp = &client_send_tcp;
+    res->client_receive_tcp = &client_receive_tcp;
 
     return res;
 }
