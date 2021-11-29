@@ -8,7 +8,8 @@ public class Ismar extends Poketudiant{
         nom = "Ismar";
         type = Type.Noisy;
         catchable = true;
-        evolution = null;
+        Rigolamor rig = new Rigolamor();
+        evolution = rig;
         coef = rand_coef();
         attack = (int) Math.round(50 * coef);
         defense = (int) Math.round(30 * coef);

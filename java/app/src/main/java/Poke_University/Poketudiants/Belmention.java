@@ -8,7 +8,8 @@ public class Belmention extends Poketudiant{
         nom = "Belmention";
         type = Type.Motivated;
         catchable = true;
-        evolution = null;
+        Promomajor pro = new Promomajor();
+        evolution = pro;
         coef = rand_coef();
         attack = (int) Math.round(30 * coef);
         defense = (int) Math.round(50 * coef);

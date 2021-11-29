@@ -16,7 +16,7 @@ public class Enseignant_dresseur extends Poketudiant{
             PV_max = (int) Math.round(100 * coef);
             PV_current = PV_max;
             attacks[0] = Attacks.teacher_attacks[rand_attack(Attacks.teacher_attacks.length)];
-            attacks[1] = other_type_attack(null);
+            attacks[1] = other_type_attack(type);
             level = 1;
             xp = 0;
             xp_max = 500 * ((1 + level) / 2);

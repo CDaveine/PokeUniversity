@@ -8,7 +8,8 @@ public class Couchtar extends Poketudiant{
         nom = "Couchtar";
         type = Type.Lazy;
         catchable = true;
-        evolution = null;
+        Nuidebou nui = new Nuidebou();
+        evolution = nui;
         coef = rand_coef();
         attack = (int) Math.round(30 * coef);
         defense = (int) Math.round(50 * coef);

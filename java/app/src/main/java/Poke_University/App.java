@@ -3,6 +3,9 @@
  */
 package Poke_University;
 
+import Poke_University.Poketudiants.Alabourre;
+import Poke_University.Poketudiants.Enseignant_dresseur;
+
 public class App {
     public String getGreeting() {
         return "Hello World!";
@@ -10,6 +13,19 @@ public class App {
 
     public static void main(String[] args) {
         System.out.println(new App().getGreeting());
-
+        Attacks att = new Attacks();
+        Alabourre ala = new Alabourre();
+        Alabourre alab = new Alabourre();
+        Enseignant_dresseur ens = new Enseignant_dresseur();
+        System.out.println(ala.rand_attack(2));
+        ala.display();
+        alab.display();
+        ens.display();
+        ens.xp = 555;
+        ens.attack(alab, ens.attacks[0]);
+        ens.experience(alab, 2);
+        ala.display();
+        alab.display();
+        ens.display();
     }
 }
