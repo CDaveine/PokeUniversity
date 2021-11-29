@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <unistd.h>
 
 #include "clientbrc.h"
 #include "clientTCP.h"
+#include "game.h"
 #include "color.h"
 
 #define MAX 20
@@ -12,139 +12,6 @@
 #define BROADCAST_PORT 9000
 #define TCP_PORT 9001
 
-static void get_msg(const char *need, char *msg){
-    printf("%s \n", need);
-    fgets(msg, SIZE, stdin);
-}
-
-static void prompt_server_list(struct sockaddr_in **servers, int nbserv, char *buffer_send){
-    int iserv;
-    do{
-        system("clear");
-        for (int i = 0; i < nbserv; i++)
-        {
-            printf("Serveurd %d: %s\n", i, inet_ntoa(servers[i]->sin_addr));
-        }
-
-        // choose the server
-        printf("%s Exit the game ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
-        printf("%s Refresh server list ", color_text(BLACK, LIGHT_GRAY, "[refresh]"));
-        get_msg(strcat(color_text(BLACK, LIGHT_GRAY, "[0...]"), " Choose server"), buffer_send);
-
-        iserv = atoi(buffer_send);
-    }while (strncmp(buffer_send, "exit", 4) && strncmp(buffer_send, "refresh", 7) && (iserv < 0 || iserv >= nbserv));
-}
-
-static void prompt_party_list(struct clientTCP *cltTCP, char **lparty, int *nbparty, char *buffer_recv, char *buffer_send, int bufsize){
-    int iparty;
-
-    do{
-        cltTCP->client_send_tcp(cltTCP, "require game list");
-        cltTCP->client_receive_tcp(cltTCP, buffer_recv, bufsize);
-
-        *nbparty = atoi(buffer_recv);
-        lparty = (char **) malloc(*nbparty * sizeof(char *));
-
-        system("clear");
-        for (int i = 0; i < *nbparty; i++)
-        {
-            cltTCP->client_receive_tcp(cltTCP, buffer_recv, bufsize);
-
-            strtok(buffer_recv, " ");
-            lparty[i] = strtok(buffer_recv, " ");
-        }
-
-        printf("%s Return to servers list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
-        printf("%s Refresh the party list ", color_text(BLACK, LIGHT_GRAY, "[refresh]")); // it could be everything because I've make the choice to don't stock the nbplayer
-        if(*nbparty != 0){
-            printf("%s Create new party ", color_text(BLACK, LIGHT_GRAY, "[create]"));
-            get_msg(strcat(color_text(BLACK, LIGHT_GRAY, "[0...]"), " Choose a party"), buffer_send);
-        }
-        else{
-            get_msg(strcat(color_text(BLACK, LIGHT_GRAY, "[create]"), " Create new party"), buffer_send);
-        }
-
-        iparty = atoi(buffer_send);
-    }while (strncmp(buffer_send, "exit", 4) && strncmp(buffer_send, "create", 4) && (iparty < 0 || iparty >= *nbparty));
-}
-
-static void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv, int bufsize){
-    int nbrow, nbcol, ibuff, nbetu;
-    char *map, *temp;
-
-    do
-    {
-        nbetu = 0;
-        ibuff = 0;
-        do
-        {
-            read(cltTCP->sock, &buffer_recv[ibuff], sizeof(char));
-            ibuff++;
-        }while (buffer_recv[ibuff]!='\n');
-        buffer_recv[ibuff+1]='\0';
-
-        printf("%s", buffer_recv);
-        temp = (char *) malloc((ibuff+1)*sizeof(char));
-        strcpy(temp, buffer_recv);
-
-        if(!strncmp(buffer_recv, "map", 3)){
-            temp = strtok(buffer_recv, " "); // pass map
-
-            temp = strtok(NULL, " ");
-            nbrow = atoi(temp);
-
-            temp = strtok(NULL, " ");
-            nbcol = atoi(temp);
-
-            map = (char *) malloc(((nbrow+1) * nbcol) * sizeof(char));
-            cltTCP->client_receive_tcp(cltTCP, map, (nbrow+1) * nbcol);
-            printf("%s", map);
-            
-            printf("%s Return to party list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
-            printf("%s Go up ", color_text(BLACK, LIGHT_GRAY, "[z]"));
-            printf("%s Go down ", color_text(BLACK, LIGHT_GRAY, "[s]"));
-            printf("%s Go left ", color_text(BLACK, LIGHT_GRAY, "[q]"));
-            get_msg(strcat(color_text(BLACK, LIGHT_GRAY, "[d]"), " Go right"), buffer_send);
-            
-            if (strncmp(buffer_recv, "exit", 4))
-            {
-                switch (buffer_send[0])
-                {
-                case 'z':
-                    cltTCP->client_send_tcp(cltTCP, "map move up");
-                    break;
-
-                case 's':
-                    cltTCP->client_send_tcp(cltTCP, "map move down");
-                    break;
-
-                case 'q':
-                    cltTCP->client_send_tcp(cltTCP, "map move left");
-                    break;
-
-                case 'd':
-                    cltTCP->client_send_tcp(cltTCP, "map move right");
-                    break;
-
-                default:
-                    break;
-                }
-            }
-
-            free(map);
-        }
-        else if (!strncmp(buffer_recv, "team contains", 13))
-        {
-            temp = strtok(buffer_recv, " "); // pass team
-            temp = strtok(NULL, " "); // pass contains
-            temp = strtok(NULL, " "); // get N
-            nbetu = atoi(temp);
-        }
-        
-        free(temp);
-        
-    } while (strncmp(buffer_recv, "exit", 4));
-}
 
 int main(int argc, char const *argv[])
 {
@@ -192,6 +59,7 @@ int main(int argc, char const *argv[])
                         temp = (char *) malloc((13+strlen(buffer_send)) * sizeof(char));
                         strcpy(temp, "create game ");
                         strcat(temp, buffer_send);
+
                         cltTCP->client_send_tcp(cltTCP, temp);
                         cltTCP->client_receive_tcp(cltTCP, buffer_recv, SIZE);
 
@@ -213,7 +81,7 @@ int main(int argc, char const *argv[])
                         cltTCP->client_receive_tcp(cltTCP, buffer_recv, SIZE);
 
                         if(!strncmp(buffer_recv, "game joined", 11)){
-                            // launch game
+                            launch_game(cltTCP, buffer_send, buffer_recv, SIZE);
                         }
                         else{
                             free(lparty);
