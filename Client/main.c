@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "clientbrc.h"
 #include "clientTCP.h"
@@ -68,61 +69,81 @@ static void prompt_party_list(struct clientTCP *cltTCP, char **lparty, int *nbpa
 }
 
 static void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv, int bufsize){
-    int nbrow, nbcol, nbrecv = 0;
-    char *temp = (char *) malloc(25 * sizeof(char));
+    int nbrow, nbcol, ibuff, nbetu;
+    char *map, *temp;
 
-    int n = cltTCP->client_receive_tcp(cltTCP, buffer_recv, bufsize);    
-    strcpy(temp, strtok(buffer_recv, "\n"));
-    printf("n %d\n", n);
-    
-    if(!strncmp(temp, "map", 3)){
-        temp = strtok(temp, " "); // pass map
-
-        temp = strtok(NULL, " ");
-        nbrow = atoi(temp);
-
-        temp = strtok(NULL, " ");
-        nbcol = atoi(temp);
-
-        temp = strtok(buffer_recv, "\n"); // pass the first line
-        do{
-            while ((temp = strtok(NULL, "\n")) != NULL)
-            {
-                printf("%s\n", temp);
-                nbrecv++;
-            }
-            cltTCP->client_receive_tcp(cltTCP, buffer_recv, bufsize);
-        }while(nbrecv != nbrow);
-        
-        printf("%s Return to party list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
-        printf("%s Go up ", color_text(BLACK, LIGHT_GRAY, "[z"));
-        printf("%s Go down ", color_text(BLACK, LIGHT_GRAY, "[s]"));
-        printf("%s Go left ", color_text(BLACK, LIGHT_GRAY, "[q]"));
-        get_msg(strcat(color_text(BLACK, LIGHT_GRAY, "[d]"), " Go right"), buffer_send);
-    }
-
-    switch (buffer_send[0])
+    do
     {
-    case 'z':
-        cltTCP->client_send_tcp(cltTCP, "map move up");
-        break;
+        nbetu = 0;
+        ibuff = 0;
+        do
+        {
+            read(cltTCP->sock, &buffer_recv[ibuff], sizeof(char));
+            ibuff++;
+        }while (buffer_recv[ibuff]!='\n');
+        buffer_recv[ibuff+1]='\0';
 
-    case 's':
-        cltTCP->client_send_tcp(cltTCP, "map move down");
-        break;
+        printf("%s", buffer_recv);
+        temp = (char *) malloc((ibuff+1)*sizeof(char));
+        strcpy(temp, buffer_recv);
 
-    case 'q':
-        cltTCP->client_send_tcp(cltTCP, "map move left");
-        break;
-    case 'd':
-        cltTCP->client_send_tcp(cltTCP, "map move right");
-        break;
+        if(!strncmp(buffer_recv, "map", 3)){
+            temp = strtok(buffer_recv, " "); // pass map
 
-    default:
-        break;
-    }
-    
-    free(temp);
+            temp = strtok(NULL, " ");
+            nbrow = atoi(temp);
+
+            temp = strtok(NULL, " ");
+            nbcol = atoi(temp);
+
+            map = (char *) malloc(((nbrow+1) * nbcol) * sizeof(char));
+            cltTCP->client_receive_tcp(cltTCP, map, (nbrow+1) * nbcol);
+            printf("%s", map);
+            
+            printf("%s Return to party list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
+            printf("%s Go up ", color_text(BLACK, LIGHT_GRAY, "[z]"));
+            printf("%s Go down ", color_text(BLACK, LIGHT_GRAY, "[s]"));
+            printf("%s Go left ", color_text(BLACK, LIGHT_GRAY, "[q]"));
+            get_msg(strcat(color_text(BLACK, LIGHT_GRAY, "[d]"), " Go right"), buffer_send);
+            
+            if (strncmp(buffer_recv, "exit", 4))
+            {
+                switch (buffer_send[0])
+                {
+                case 'z':
+                    cltTCP->client_send_tcp(cltTCP, "map move up");
+                    break;
+
+                case 's':
+                    cltTCP->client_send_tcp(cltTCP, "map move down");
+                    break;
+
+                case 'q':
+                    cltTCP->client_send_tcp(cltTCP, "map move left");
+                    break;
+
+                case 'd':
+                    cltTCP->client_send_tcp(cltTCP, "map move right");
+                    break;
+
+                default:
+                    break;
+                }
+            }
+
+            free(map);
+        }
+        else if (!strncmp(buffer_recv, "team contains", 13))
+        {
+            temp = strtok(buffer_recv, " "); // pass team
+            temp = strtok(NULL, " "); // pass contains
+            temp = strtok(NULL, " "); // get N
+            nbetu = atoi(temp);
+        }
+        
+        free(temp);
+        
+    } while (strncmp(buffer_recv, "exit", 4));
 }
 
 int main(int argc, char const *argv[])
