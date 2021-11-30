@@ -67,13 +67,13 @@ void prompt_party_list(struct clientTCP *cltTCP, char **lparty, int *nbparty, ch
 }
 
 static void launch_team(){
-    execl("/bin/sh", "gnome-terminal", "-e", "./team", NULL);
+    system("gnome-terminal -e ./team");
     perror("failed launch team interface");
     exit(1);
 }
 
 static void launch_tchat(){
-    execl("/bin/sh", "gnome-terminal", "-e", "./tchat", NULL);
+    system("gnome-terminal -e ./team");
     perror("failed launch tchat interface");
     exit(1);
 }
@@ -146,6 +146,9 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
     char *temp;
     pid_t pidTeam, pidTchat;
 
+    unlink("Team.fifo");
+    unlink("Tchat.fifo");
+
     if(mkfifo("Team.fifo", 0777) == -1){
         perror("error create Team.fifo");
         exit(1);
@@ -194,6 +197,4 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
 
     close(fifoTeam);
     close(fifoTchat);
-    unlink("Team.fifo");
-    unlink("Tchat.fifo");
 }
