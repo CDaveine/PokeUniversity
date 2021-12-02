@@ -66,18 +66,6 @@ void prompt_party_list(struct clientTCP *cltTCP, char **lparty, int *nbparty, ch
     }while (strncmp(buffer_send, "exit", 4) && strncmp(buffer_send, "create", 4) && (iparty < 0 || iparty >= *nbparty));
 }
 
-static void launch_team(){
-    system("gnome-terminal -e ./team");
-    perror("failed launch team interface");
-    exit(1);
-}
-
-static void launch_tchat(){
-    system("gnome-terminal -e ./team");
-    perror("failed launch tchat interface");
-    exit(1);
-}
-
 static void print_map(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send, char *temp){
     int nbrow, nbcol;
     char *map;
@@ -163,12 +151,14 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
 
     fifoTchat = open("Tchat.fifo", O_WRONLY);
 
-    if(!(pidTeam = fork())){
-        launch_team();
+    if((pidTeam = system("gnome-terminal -e ./team"))==-1){
+        perror("couldn't lauch team");
+        exit(1);
     }
 
-    if(!(pidTchat = fork())){
-        launch_tchat();
+    if((pidTchat = system("gnome-terminal -e ./tchat"))==-1){
+        perror("couldn't lauch tchat");
+        exit(1);
     }
 
     do
@@ -191,10 +181,17 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
         {
             print_team(buffer_recv, temp, fifoTeam);
         }
+        else if (!strncmp(buffer_recv, "message", 7))
+        {
+            //print_message
+        }
         free(temp);
         
     } while (strncmp(buffer_recv, "exit", 4));
 
     close(fifoTeam);
     close(fifoTchat);
+
+    unlink("Team.fifo");
+    unlink("Tchat.fifo");
 }
