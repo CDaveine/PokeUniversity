@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -48,7 +49,7 @@ int main(int argc, char const *argv[])
                 
                 // show party list
                 do{
-                    prompt_party_list(cltTCP, lparty, &nbparty, buffer_recv, buffer_send, SIZE);
+                    lparty = prompt_party_list(cltTCP, &nbparty, buffer_recv, buffer_send, SIZE);
                     iparty = atoi(buffer_recv);
 
                     if(!strncmp(buffer_send, "create", 6))
@@ -58,7 +59,8 @@ int main(int argc, char const *argv[])
                         get_msg("Enter a party name: ", buffer_send);
                         temp = (char *) malloc((13+strlen(buffer_send)) * sizeof(char));
                         strcpy(temp, "create game ");
-                        strcat(temp, buffer_send);
+                        strncat(temp, buffer_send, strlen(buffer_recv));
+                        temp[strlen(buffer_recv)] = '\0';
 
                         cltTCP->client_send_tcp(cltTCP, temp);
                         cltTCP->client_receive_tcp(cltTCP, buffer_recv, SIZE);
@@ -67,6 +69,11 @@ int main(int argc, char const *argv[])
                             launch_game(cltTCP, buffer_send, buffer_recv, SIZE);
                         }
                         else{
+                            for (int i = 0; i < nbparty; i++)
+                            {
+                                free(lparty[i]);
+                            }
+                            
                             free(lparty);
                             continue; // return to party list
                         }
@@ -75,7 +82,7 @@ int main(int argc, char const *argv[])
                     {
                         // join party
                         strcpy(buffer_send, "join game ");
-                        strcat(buffer_send, lparty[iparty]);
+                        strncat(buffer_send, lparty[iparty], strlen(lparty[iparty]));
 
                         cltTCP->client_send_tcp(cltTCP, buffer_send);
                         cltTCP->client_receive_tcp(cltTCP, buffer_recv, SIZE);
@@ -84,6 +91,11 @@ int main(int argc, char const *argv[])
                             launch_game(cltTCP, buffer_send, buffer_recv, SIZE);
                         }
                         else{
+                            for (int i = 0; i < nbparty; i++)
+                            {
+                                free(lparty[i]);
+                            }
+                            
                             free(lparty);
                             continue; // return to party list
                         }
