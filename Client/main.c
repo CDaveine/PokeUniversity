@@ -50,7 +50,7 @@ int main(int argc, char const *argv[])
                 // show party list
                 do{
                     lparty = prompt_party_list(cltTCP, &nbparty, buffer_recv, buffer_send, SIZE);
-                    iparty = atoi(buffer_recv);
+                    iparty = atoi(buffer_send);
 
                     if(!strncmp(buffer_send, "create", 6))
                     {
@@ -59,7 +59,7 @@ int main(int argc, char const *argv[])
                         get_msg("Enter a party name: ", buffer_send);
                         temp = (char *) malloc((13+strlen(buffer_send)) * sizeof(char));
                         strcpy(temp, "create game ");
-                        strncat(temp, buffer_send, strlen(buffer_recv));
+                        strcat(temp, buffer_send);
                         temp[strlen(buffer_recv)] = '\0';
 
                         cltTCP->client_send_tcp(cltTCP, temp);

@@ -34,11 +34,12 @@ void prompt_server_list(struct sockaddr_in **servers, int nbserv, char *buffer_s
 }
 
 char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_recv, char *buffer_send, int bufsize){
-    int iparty, ibuff, nbplayer;
+    int iparty, ibuff, nbplayer, size;
     char *temp, pname[25], **lparty;
 
     lparty = NULL;
     do{
+        system("clear");
         cltTCP->client_send_tcp(cltTCP, "require game list");
         
         ibuff = 0;
@@ -49,9 +50,8 @@ char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_r
         }while (buffer_recv[ibuff-1]!='\n');
         buffer_recv[ibuff] = '\0';
 
-        sscanf(buffer_recv, "number of games %d", nbparty);
+        sscanf(buffer_recv, "number of games %d\n", nbparty);
 
-        system("clear");
         if(lparty!=NULL){
             for (int i = 0; i < *nbparty; i++)
             {
@@ -61,34 +61,34 @@ char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_r
             free(lparty);
         }
         lparty = (char **) malloc(*nbparty * sizeof(char *));
+
         if(*nbparty != 0){
-            cltTCP->client_receive_tcp(cltTCP, buffer_recv, bufsize);
+            size = cltTCP->client_receive_tcp(cltTCP, buffer_recv, bufsize);
+            buffer_recv[size]='\0';
+
             if(*nbparty != 1){
                 temp = strtok(buffer_recv, "\n");
                 for (int i = 0; i < *nbparty; i++)
                 {
                     temp = strtok(NULL, "\n");
                     printf("party %d: %s\n", i, temp);
-                    sscanf(temp, "%d %s\n", &nbplayer, pname);
+                    sscanf(temp, "%d %s", &nbplayer, pname);
                     lparty[i] = (char *) malloc((strlen(pname)+1)*sizeof(char));
-                    strncpy(lparty[i], pname, strlen(pname));
-                    lparty[0][strlen(pname)] = '\0';
+                    strcpy(lparty[i], pname);
                 }
             }
             else
             {
                 printf("party 0: %s", buffer_recv);
-                sscanf(buffer_recv, "%d %s", &nbplayer, lparty[0]);
+                sscanf(buffer_recv, "%d %s", &nbplayer, pname);
                 lparty[0] = (char *) malloc((strlen(pname)+1)*sizeof(char));
-                strncpy(lparty[0], pname, strlen(pname));
-                lparty[0][strlen(pname)] = '\0';
+                strcpy(lparty[0], pname);
             }
 
             printf("%s Return to servers list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
             printf("%s Refresh the party list ", color_text(BLACK, LIGHT_GRAY, "[refresh]")); // it could be everything because I've make the choice to don't stock the nbplayer
             printf("%s Create new party ", color_text(BLACK, LIGHT_GRAY, "[create]"));
             get_msg(strcat(color_text(BLACK, LIGHT_GRAY, "[0...]"), " Choose a party"), buffer_send);
-
             iparty = atoi(buffer_send);
         }
         else{
@@ -107,13 +107,7 @@ static void print_map(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_
     int nbrow, nbcol;
     char *map;
 
-    temp = strtok(buffer_recv, " "); // pass map
-
-    temp = strtok(NULL, " ");
-    nbrow = atoi(temp);
-
-    temp = strtok(NULL, " ");
-    nbcol = atoi(temp);
+    sscanf(buffer_recv, "map %d %d\n", &nbrow, &nbcol);
 
     map = (char *) malloc(((nbrow+1) * nbcol) * sizeof(char));
     cltTCP->client_receive_tcp(cltTCP, map, (nbrow+1) * nbcol);
@@ -226,7 +220,7 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
         }
         free(temp);
         
-    } while (strncmp(buffer_recv, "exit", 4));
+    }while (strncmp(buffer_recv, "exit", 4));
 
     close(fifoTeam);
     close(fifoTchat);
