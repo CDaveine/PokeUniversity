@@ -3,13 +3,14 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <string.h>
 
 #define SIZE  500
 
 int main(int argc, char const *argv[])
 {
-    int fd;
-    char buffer[SIZE], temp[50];
+    int fd, nbpoke;
+    char buffer[SIZE], *temp;
 
     if((fd = open("Team.fifo", O_RDONLY)) == -1){
         perror("can't opent Team.fifo please launch the client before");
@@ -18,8 +19,29 @@ int main(int argc, char const *argv[])
     
     while(read(fd, buffer, SIZE))
     {
-        printf("%s", buffer);
+        system("clear");
+        printf("Team\n");
+        if(!strncmp(buffer, "exit", 4)){
+            break;
+        }
+        sscanf(buffer, "team contains %d\n", &nbpoke);
+
+        read(fd, buffer, SIZE);
+        for (int i = 0; i < nbpoke; i++)
+        {
+            if (i==0)
+            {
+                temp = strtok(buffer, "\n");
+            }
+            else
+            {
+                temp = strtok(NULL, "\n");
+            }
+            printf("%d %s\n", i, temp);
+        }
     }
+
+    close(fd);
 
     return 0;
 }

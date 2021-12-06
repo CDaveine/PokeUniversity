@@ -40,7 +40,7 @@ char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_r
     lparty = NULL;
     do{
         system("clear");
-        cltTCP->client_send_tcp(cltTCP, "require game list");
+        cltTCP->client_send_tcp(cltTCP, "require game list\n");
         
         ibuff = 0;
         do
@@ -75,6 +75,7 @@ char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_r
                     sscanf(temp, "%d %s", &nbplayer, pname);
                     lparty[i] = (char *) malloc((strlen(pname)+1)*sizeof(char));
                     strcpy(lparty[i], pname);
+                    lparty[i][strlen(pname)] = '\n';
                 }
             }
             else
@@ -83,6 +84,7 @@ char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_r
                 sscanf(buffer_recv, "%d %s", &nbplayer, pname);
                 lparty[0] = (char *) malloc((strlen(pname)+1)*sizeof(char));
                 strcpy(lparty[0], pname);
+                lparty[0][strlen(pname)] = '\n';
             }
 
             printf("%s Return to servers list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
@@ -103,7 +105,7 @@ char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_r
     return lparty;
 }
 
-static void print_map(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send, char *temp){
+static void print_map(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send){
     int nbrow, nbcol;
     char *map;
 
@@ -113,7 +115,7 @@ static void print_map(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_
     cltTCP->client_receive_tcp(cltTCP, map, (nbrow+1) * nbcol);
 
     system("clear");
-    printf("%s", map);
+    printf("%s\n", map);
     
     printf("%s Return to party list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
     printf("%s Go up ", color_text(BLACK, LIGHT_GRAY, "[z]"));
@@ -126,19 +128,19 @@ static void print_map(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_
         switch (buffer_send[0])
         {
         case 'z':
-            cltTCP->client_send_tcp(cltTCP, "map move up");
+            cltTCP->client_send_tcp(cltTCP, "map move up\n");
             break;
 
         case 's':
-            cltTCP->client_send_tcp(cltTCP, "map move down");
+            cltTCP->client_send_tcp(cltTCP, "map move down\n");
             break;
 
         case 'q':
-            cltTCP->client_send_tcp(cltTCP, "map move left");
+            cltTCP->client_send_tcp(cltTCP, "map move left\n");
             break;
 
         case 'd':
-            cltTCP->client_send_tcp(cltTCP, "map move right");
+            cltTCP->client_send_tcp(cltTCP, "map move right\n");
             break;
 
         default:
@@ -149,20 +151,8 @@ static void print_map(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_
     free(map);
 }
 
-static void print_team(char *buffer_recv, char *temp, int fifoTeam){
-    int nbetu;
-
-    temp = strtok(buffer_recv, " "); // pass team
-    temp = strtok(NULL, " "); // pass contains
-    temp = strtok(NULL, " "); // get N
-    nbetu = atoi(temp);
-
-    write(fifoTeam, buffer_recv, strlen(buffer_recv));
-}
-
 void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv, int bufsize){
     int ibuff, fifoTeam, fifoTchat;
-    char *temp;
     pid_t pidTeam, pidTchat;
 
     unlink("Team.fifo");
@@ -178,21 +168,18 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
         exit(1);
     }
 
+    if((pidTeam = system("gnome-terminal -- ./team"))==-1){
+        perror("couldn't launch team");
+        exit(1);
+    }
+
+    if((pidTchat = system("gnome-terminal -- ./tchat"))==-1){
+        perror("couldn't launch tchat");
+        exit(1);
+    }
+
     fifoTeam = open("Team.fifo", O_WRONLY);
-
     fifoTchat = open("Tchat.fifo", O_WRONLY);
-
-    printf("launch team\n");
-    if((pidTeam = system("gnome-terminal -e ./team"))==-1){
-        perror("couldn't lauch team");
-        exit(1);
-    }
-
-    printf("launch tchat\n");
-    if((pidTchat = system("gnome-terminal -e ./tchat"))==-1){
-        perror("couldn't lauch tchat");
-        exit(1);
-    }
 
     do
     {
@@ -204,21 +191,19 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
         }while (buffer_recv[ibuff-1]!='\n');
         buffer_recv[ibuff]='\0';
 
-        printf("%s", buffer_recv);
-        temp = (char *) malloc((ibuff+1)*sizeof(char));
-
         if(!strncmp(buffer_recv, "map", 3)){
-            print_map(cltTCP, buffer_recv, buffer_send, temp);
+            print_map(cltTCP, buffer_recv, buffer_send);
         }
         else if (!strncmp(buffer_recv, "team contains", 13))
         {
-            print_team(buffer_recv, temp, fifoTeam);
+            write(fifoTeam, buffer_recv, strlen(buffer_recv));
+            cltTCP->client_receive_tcp(cltTCP, buffer_recv, bufsize);
+            write(fifoTeam, buffer_recv, strlen(buffer_recv));
         }
         else if (!strncmp(buffer_recv, "message", 7))
         {
-            //print_message
+            write(fifoTchat, buffer_recv, strlen(buffer_recv));
         }
-        free(temp);
         
     }while (strncmp(buffer_recv, "exit", 4));
 

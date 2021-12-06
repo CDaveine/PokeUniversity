@@ -26,7 +26,7 @@ int main(int argc, char const *argv[])
 
     for (;;)
     {
-        clt->client_send_broadcast(clt, "looking for poketudiant servers");
+        clt->client_send_broadcast(clt, "looking for poketudiant servers\n");
         servers = clt->client_receive_servers(clt, "i'm a poketudiant server", buffer_recv, SIZE, &nbserv);
 
         if(nbserv != 0){ 

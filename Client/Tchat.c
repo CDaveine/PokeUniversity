@@ -18,6 +18,8 @@ int main(int argc, char const *argv[])
 
     while(read(fd, buffer, SIZE))
     {
+        system("clear");
+        printf("Tchat\n");
         printf("%s", buffer);
     }
 
