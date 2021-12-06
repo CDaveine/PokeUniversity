@@ -19,7 +19,7 @@ int main(int argc, char const *argv[])
     Clientbrc clt = client_create_broadcast(BROADCAST_PORT);
     ClientTCP cltTCP;
     struct sockaddr_in **servers, *server;
-    int nbserv, nbparty, iserv, iparty;
+    int nbserv, nbparty, iserv, iparty, ibuff;
     char buffer_send[SIZE];
     char buffer_recv[SIZE];
     char **lparty, *temp;
@@ -63,7 +63,19 @@ int main(int argc, char const *argv[])
                         temp[strlen(buffer_recv)] = '\0';
 
                         cltTCP->client_send_tcp(cltTCP, temp);
-                        cltTCP->client_receive_tcp(cltTCP, buffer_recv, SIZE);
+                        if (nbparty)
+                        {
+                            cltTCP->client_receive_tcp(cltTCP, buffer_recv, SIZE);
+                        }
+                        else
+                        {
+                            ibuff = 0;
+                            do{
+                                read(cltTCP->sock, &buffer_recv[ibuff], sizeof(char));
+                                ibuff++;
+                            }while(buffer_recv[ibuff-1] != '\n');
+                            buffer_recv[ibuff] = '\0';   
+                        }
 
                         if(!strncmp(buffer_recv, "game created", 12)){
                             launch_game(cltTCP, buffer_send, buffer_recv, SIZE);
