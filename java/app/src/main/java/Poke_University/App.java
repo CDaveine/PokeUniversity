@@ -17,6 +17,9 @@ public class App {
         Alabourre ala = new Alabourre();
         Alabourre alab = new Alabourre();
         Enseignant_dresseur ens = new Enseignant_dresseur();
+        try (Server s = new Server()) {
+			s.run();
+		}
         System.out.println(ala.rand_attack(2));
         ala.display();
         alab.display();
