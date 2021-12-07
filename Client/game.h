@@ -1,5 +1,9 @@
 #pragma once
 
+#include <stdbool.h>
+
+extern bool isExit; 
+extern bool isRunning;
 
 void get_msg(const char *need, char *msg);
 

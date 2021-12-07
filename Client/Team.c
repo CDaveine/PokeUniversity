@@ -17,8 +17,12 @@ int main(int argc, char const *argv[])
         exit(1);
     }
     
+    printf("Team\n");
     while(read(fd, buffer, SIZE))
     {
+        if(!strncmp(buffer, "exit", 4)){
+            break;
+        }
         system("clear");
         printf("Team\n");
         if(!strncmp(buffer, "exit", 4)){

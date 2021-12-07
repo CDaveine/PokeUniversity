@@ -1,5 +1,5 @@
 client: main.o clientbrc.o clientTCP.o game.o error.o color.o
-	gcc -g -o client main.o clientbrc.o clientTCP.o game.o error.o color.o
+	gcc -g -o client main.o clientbrc.o clientTCP.o game.o error.o color.o -pthread
 
 team: team.o
 	gcc -g -o team team.o

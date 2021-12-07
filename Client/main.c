@@ -37,7 +37,11 @@ int main(int argc, char const *argv[])
             {
                 break;
             }
-            else if(iserv < nbserv)
+            else if(!strncmp(buffer_send, "refresh", 7))
+            {
+                continue; // return at the start
+            }
+            else
             {
                 server = servers[iserv];
                 cltTCP = client_create_tcp(inet_ntoa(servers[iserv]->sin_addr), TCP_PORT);
@@ -77,19 +81,18 @@ int main(int argc, char const *argv[])
                             buffer_recv[ibuff] = '\0';   
                         }
 
+                        for (int i = 0; i < nbparty; i++)
+                        {
+                            free(lparty[i]);
+                        }
+                        free(lparty);
+
                         if(!strncmp(buffer_recv, "game created", 12)){
                             launch_game(cltTCP, buffer_send, buffer_recv, SIZE);
+                            clientTCP_close_and_free(cltTCP);
+                            break;
                         }
-                        else{
-                            for (int i = 0; i < nbparty; i++)
-                            {
-                                free(lparty[i]);
-                            }
-                            
-                            free(lparty);
-                            continue; // return to party list
-                        }
-
+                        
                     }else if(iparty >= 0 &&  iparty < nbparty)
                     {
                         // join party
@@ -99,23 +102,20 @@ int main(int argc, char const *argv[])
                         cltTCP->client_send_tcp(cltTCP, buffer_send);
                         cltTCP->client_receive_tcp(cltTCP, buffer_recv, SIZE);
 
+                        for (int i = 0; i < nbparty; i++)
+                        {
+                            free(lparty[i]);
+                        }
+                        
+                        free(lparty);
+
                         if(!strncmp(buffer_recv, "game joined", 11)){
                             launch_game(cltTCP, buffer_send, buffer_recv, SIZE);
-                        }
-                        else{
-                            for (int i = 0; i < nbparty; i++)
-                            {
-                                free(lparty[i]);
-                            }
-                            
-                            free(lparty);
-                            continue; // return to party list
+                            clientTCP_close_and_free(cltTCP);
+                            break;
                         }
                     }
-                }while (strncmp(buffer_send, "exit", 4));
-
-                continue; // return to server list
-                
+                }while(strncmp(buffer_send, "exit", 4));
             }
         }
         else{
