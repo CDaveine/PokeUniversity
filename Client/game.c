@@ -137,7 +137,7 @@ void show_player(char **map, int nbrow, int nbcol){
         }
     }
 
-    if(nbcol<10){
+    if(nbcol < 10){
         xMax = nbcol;
         xMin = 0;
     }
@@ -158,7 +158,7 @@ void show_player(char **map, int nbrow, int nbcol){
     }
     
     
-    if(nbrow<10){
+    if(nbrow < 10){
         yMax = nbrow;
         yMin = 0;
     }
@@ -182,27 +182,33 @@ void show_player(char **map, int nbrow, int nbcol){
     {
         for (int j = xMin; j < xMax; j++)
         {
-            switch (map[i][j])
-            {
-            case ' ':
+            if(j > strlen(map[i])){
                 printf("%s", color_text(GREEN, LIGHT_GREEN, "🌿"));
-                break;
-            
-            case '*':
-                printf("%s", color_text(GREEN, LIGHT_GREEN, "🥦"));
-                break;
-            
-            case '0':
-                printf("%s", color_text(GREEN, GREEN, "🧒"));
-                break;
-            
-            case '+':
-                printf("%s", color_text(GREEN, GREEN, "🏥"));
-                break;
-            
-            default:
-                printf("%s", color_text(GREEN, WHITE, "👦"));
-                break;
+            }
+            else
+            {
+                switch (map[i][j])
+                {
+                case ' ':
+                    printf("%s", color_text(GREEN, LIGHT_GREEN, "🌿"));
+                    break;
+                
+                case '*':
+                    printf("%s", color_text(GREEN, LIGHT_GREEN, "🥦"));
+                    break;
+                
+                case '0':
+                    printf("%s", color_text(GREEN, GREEN, "🧒"));
+                    break;
+                
+                case '+':
+                    printf("%s", color_text(GREEN, GREEN, "🏥"));
+                    break;
+                
+                default:
+                    printf("%s", color_text(GREEN, WHITE, "👦"));
+                    break;
+                }
             }
         }
         printf("\n");
@@ -232,8 +238,6 @@ void print_map(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send){
         }
     }
     system("clear");
-    //printf("%s\n", temp);
-
     show_player(map, nbrow, nbcol);
     
     printf("%s Return to server list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
@@ -287,25 +291,58 @@ void start_fight(){
     
 }
 
+void *thout_Team(void *clt){
+    char buf[500];
+    int fd;
+    ClientTCP cltTcp;
+
+    fd = open("OUT_Team.fifo", O_RDONLY);
+    cltTcp = (struct clientTCP *) clt;
+    while(read(fd, buf, 500))
+    {
+        if (!strncmp(buf, "exit", 4))
+        {
+            break;
+        }
+        printf("%s", buf);
+        cltTcp->client_send_tcp(cltTcp, buf);
+    }
+
+    close(fd);
+    return NULL;
+}
+
 void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv, int bufsize){
     int ibuff, fifoTeam, fifoTchat;
     pid_t pidTeam, pidTchat;
-    pthread_t threadMap;
+    pthread_t threadMap, threadTeam;
     fd_set rfds;
     struct timeval tv;
 
     isRunning = false;
     isExit = false;
 
-    unlink("Team.fifo");
-    unlink("Tchat.fifo");
+    unlink("IN_Team.fifo");
+    unlink("OUT_Team.fifo");
+    unlink("IN_Tchat.fifo");
+    unlink("OUT_Tchat.fifo");
 
-    if(mkfifo("Team.fifo", 0777) == -1){
+    if(mkfifo("IN_Team.fifo", 0777) == -1){
+        perror("error create Team.fifo");
+        exit(1);
+    }
+
+    if(mkfifo("OUT_Team.fifo", 0777) == -1){
         perror("error create Team.fifo");
         exit(1);
     }
     
-    if(mkfifo("Tchat.fifo", 0777) == -1){
+    if(mkfifo("IN_Tchat.fifo", 0777) == -1){
+        perror("error create Tchat.fifo");
+        exit(1);
+    }
+
+    if(mkfifo("OUT_Tchat.fifo", 0777) == -1){
         perror("error create Tchat.fifo");
         exit(1);
     }
@@ -320,9 +357,11 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
         exit(1);
     }
 
-    fifoTeam = open("Team.fifo", O_WRONLY);
-    fifoTchat = open("Tchat.fifo", O_WRONLY);
-    
+    fifoTeam = open("IN_Team.fifo", O_WRONLY);
+    fifoTchat = open("IN_Tchat.fifo", O_WRONLY);
+
+    pthread_create(&threadTeam, NULL, thout_Team, (void *) cltTCP);
+
     do
     {
         tv.tv_sec = 0;
@@ -356,10 +395,6 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
             {
                 write(fifoTchat, buffer_recv, strlen(buffer_recv));
             }
-            else
-            {
-                start_fight();
-            }
         }
     }while(!isExit);
 
@@ -369,8 +404,10 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
     write(fifoTchat, "exit", 4);
     close(fifoTchat);
 
-    unlink("Team.fifo");
-    unlink("Tchat.fifo");
+    unlink("IN_Team.fifo");
+    unlink("OUT_Team.fifo");
+    unlink("IN_Tchat.fifo");
+    unlink("OUT_Tchat.fifo");
 
     isExit = false;
     strcpy(buffer_send, "refresh");

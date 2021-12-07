@@ -12,7 +12,7 @@ int main(int argc, char const *argv[])
     char buffer[SIZE];
     int fd;
 
-    if((fd = open("Tchat.fifo", O_RDONLY)) == -1){
+    if((fd = open("IN_Tchat.fifo", O_RDONLY)) == -1){
         perror("can't opent Tchat.fifo please launch the client before");
         exit(1);
     }
