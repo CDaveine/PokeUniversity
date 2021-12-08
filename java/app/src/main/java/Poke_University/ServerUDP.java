@@ -7,7 +7,7 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 
-public class ServerUDP implements Communicate, Runnable, Closeable {
+public class ServerUDP implements Communicate, Runnable, Closeable{
 	private final static int PORT = 9000;
 
 	private static final String SEARCH_SERVER = "looking for poketudiant servers\n";
@@ -86,8 +86,8 @@ public class ServerUDP implements Communicate, Runnable, Closeable {
 				send(ANSWER_ERROR);
 			}
 		}
-
 	}
+
 
 
 

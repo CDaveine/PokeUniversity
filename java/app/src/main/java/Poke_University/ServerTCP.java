@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
   
 // Server class
-class ServerTCP implements Closeable{
+class ServerTCP implements Closeable, Runnable{
 	private final static int PORT = 9001;
 	private static ServerSocket server;
 
@@ -16,7 +16,9 @@ class ServerTCP implements Closeable{
 	public void close() throws IOException{
 		server.close();
 	}
-    public static void main(String[] args){
+
+    @Override
+    public void run(){
         try {
             // server is listening on port 1234
             server = new ServerSocket(PORT);

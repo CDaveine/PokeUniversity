@@ -5,19 +5,29 @@ import Poke_University.*;
 import java.io.*;
 import java.net.*;
 
-public class App {
+public class App{
+
     public String getGreeting() {
         return "Hello World!";
     }
 
     public static void main(String[] args) {
         System.out.println(new App().getGreeting());
-        //udp
-        try (ServerUDP s = new ServerUDP()) {
-			s.run();
-		}
+        try(ServerUDP serverUDP = new ServerUDP()){
+            //try (ServerTCP serverTCP = new ServerTCP()) {
+                Thread threadUDP = new Thread(serverUDP);
+                threadUDP.start();
+               // new Thread(serverTCP).start();
+            /*} catch (IOException e) {
+                e.printStackTrace();
+            }*/
 
-        /*try (ServerTCP serv = new ServerTCP()) {
+        }
+        //udp
+        /*try (ServerUDP s = new ServerUDP()) {
+            s.run();;
+		}
+        try (ServerTCP serv = new ServerTCP()) {
             Socket client = serv.accept();
 
             //BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -33,7 +43,7 @@ public class App {
             e.printStackTrace();
         }
 
-        /*
+        
         Attacks att = new Attacks();
         Alabourre ala = new Alabourre();
         Alabourre alab = new Alabourre();
