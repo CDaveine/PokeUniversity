@@ -8,6 +8,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 
 public class ServerUDP implements Communicate, Runnable, Closeable{
+	
 	private final static int PORT = 9000;
 
 	private static final String SEARCH_SERVER = "looking for poketudiant servers\n";
@@ -24,6 +25,7 @@ public class ServerUDP implements Communicate, Runnable, Closeable{
 	public ServerUDP() {
 		try {
 			socket = new DatagramSocket(PORT);
+			System.out.println(socket.getPort());
 		} catch (SocketException e) {
 
 			if (!socket.isClosed()) {
@@ -41,7 +43,7 @@ public class ServerUDP implements Communicate, Runnable, Closeable{
 		try {
 			socket.receive(receivePacket);
 			addr = new InetSocketAddress(receivePacket.getAddress(), receivePacket.getPort());
-			return new String(receivePacket.getData());
+			return new String(receivePacket.getData(),0,SEARCH_SERVER.length());
 		} catch (IOException e) {
 			e.printStackTrace();
 			if (!socket.isClosed()) {
@@ -75,18 +77,20 @@ public class ServerUDP implements Communicate, Runnable, Closeable{
 
 	@Override
 	public void run() {
-		while (true) {
-			String msg = receive();
-			System.out.println("Message reçu:" + msg);
-			if (msg.contains(SEARCH_SERVER)) {
-				System.out.println(ANSWER_SEARCH_SERVER);
-				send(ANSWER_SEARCH_SERVER);
-			} else {
-				System.out.println(ANSWER_ERROR);
-				send(ANSWER_ERROR);
-			}
-		}
-	}
+        try(ServerUDP s = new ServerUDP()){
+            while (true) {
+                String msg = s.receive();
+                System.out.println("Message reçu:" + msg);
+                if (msg.contains(SEARCH_SERVER)) {
+                    System.out.println(ANSWER_SEARCH_SERVER);
+                    s.send(ANSWER_SEARCH_SERVER);
+                } else {
+                    System.out.println(ANSWER_ERROR);
+                    s.send(ANSWER_ERROR);
+                }
+            }
+        }
+    }
 
 
 

@@ -4,6 +4,8 @@ package Poke_University;
 import Poke_University.*;
 import java.io.*;
 import java.net.*;
+import java.io.Closeable;
+import java.io.IOException;
 
 public class App{
 
@@ -14,13 +16,15 @@ public class App{
     public static void main(String[] args) {
         System.out.println(new App().getGreeting());
         try(ServerUDP serverUDP = new ServerUDP()){
-            //try (ServerTCP serverTCP = new ServerTCP()) {
+            try (ServerTCP serverTCP = new ServerTCP()) {
+
                 Thread threadUDP = new Thread(serverUDP);
                 threadUDP.start();
-               // new Thread(serverTCP).start();
-            /*} catch (IOException e) {
+                //serverUDP.run();
+               new Thread(serverTCP).start();
+            } catch (IOException e) {
                 e.printStackTrace();
-            }*/
+            }
 
         }
         //udp
