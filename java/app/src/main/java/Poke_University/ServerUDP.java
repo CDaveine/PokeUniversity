@@ -25,7 +25,6 @@ public class ServerUDP implements Communicate, Runnable, Closeable{
 	public ServerUDP() {
 		try {
 			socket = new DatagramSocket(PORT);
-			System.out.println(socket.getPort());
 		} catch (SocketException e) {
 
 			if (!socket.isClosed()) {

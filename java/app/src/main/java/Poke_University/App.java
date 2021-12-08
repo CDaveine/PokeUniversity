@@ -16,17 +16,15 @@ public class App{
     public static void main(String[] args) {
         System.out.println(new App().getGreeting());
         try(ServerUDP serverUDP = new ServerUDP()){
-            try (ServerTCP serverTCP = new ServerTCP()) {
-
                 Thread threadUDP = new Thread(serverUDP);
                 threadUDP.start();
-                //serverUDP.run();
-               new Thread(serverTCP).start();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
         }
+        try (ServerTCP serverTCP = new ServerTCP()) {
+                serverTCP.run();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         //udp
         /*try (ServerUDP s = new ServerUDP()) {
             s.run();;

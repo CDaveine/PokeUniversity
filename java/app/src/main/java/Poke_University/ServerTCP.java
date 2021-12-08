@@ -6,28 +6,34 @@ import java.net.*;
 // Server class
 class ServerTCP implements Closeable, Runnable{
 	private final static int PORT = 9001;
-	private static ServerSocket server;
+	private static ServerSocket socket;
+
+    public ServerTCP() {
+		try {
+			socket = new ServerSocket(PORT);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public Socket accept() throws IOException{
-		return server.accept();
+		return socket.accept();
 	}
 
 	@Override
 	public void close() throws IOException{
-		server.close();
+		socket.close();
 	}
 
     @Override
     public void run(){
-        try {
             // server is listening on port 1234
-            server = new ServerSocket(PORT);
             // running infinite loop for getting
             // client request
             while (true) {
                 // socket object to receive incoming client
                 // requests
-                Socket client = server.accept();
+                try(Socket client = socket.accept()){
                 // Displaying that new client is connected
                 // to server
                 System.out.println("New client connected" + client.getInetAddress().getHostAddress());
@@ -36,22 +42,20 @@ class ServerTCP implements Closeable, Runnable{
 				// This thread will handle the client
 				// separately
 				new Thread(clientSock).start();
-			}
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		finally {
-			if (server != null) {
+            }catch(IOException e){
+                e.printStackTrace();
+                }
+			if (socket != null) {
 				try {
-					server.close();
+					socket.close();
 				}
 				catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
 		}
-	}
+    }
+
 
 					   
  // ClientHandler class
