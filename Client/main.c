@@ -115,7 +115,8 @@ int main(int argc, char const *argv[])
                             break;
                         }
                     }
-                }while(strncmp(buffer_send, "exit", 4));
+                }while(strncmp(buffer_send, "exit", 4));   
+                clientTCP_close_and_free(cltTCP);
             }
         }
         else{
