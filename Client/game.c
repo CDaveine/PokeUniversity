@@ -304,7 +304,22 @@ void *thout_Team(void *clt){
         {
             break;
         }
-        printf("%s", buf);
+        cltTcp->client_send_tcp(cltTcp, buf);
+    }
+
+    close(fd);
+    return NULL;
+}
+
+void *thout_Tchat(void *clt){
+    char buf[500];
+    int fd;
+    ClientTCP cltTcp;
+
+    fd = open("OUT_Tchat.fifo", O_RDONLY);
+    cltTcp = (struct clientTCP *) clt;
+    while(read(fd, buf, 500))
+    {
         cltTcp->client_send_tcp(cltTcp, buf);
     }
 
@@ -313,9 +328,9 @@ void *thout_Team(void *clt){
 }
 
 void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv, int bufsize){
-    int ibuff, fifoTeam, fifoTchat;
+    int ibuff, fifoTeam, fifoTchat, nbpoke, ipoke;
     pid_t pidTeam, pidTchat;
-    pthread_t threadMap, threadTeam;
+    pthread_t threadMap, threadTeam, threadTchat;
     fd_set rfds;
     struct timeval tv;
 
@@ -361,6 +376,7 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
     fifoTchat = open("IN_Tchat.fifo", O_WRONLY);
 
     pthread_create(&threadTeam, NULL, thout_Team, (void *) cltTCP);
+    pthread_create(&threadTchat, NULL, thout_Tchat, (void *) cltTCP);
 
     do
     {
@@ -388,10 +404,21 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
             else if(!strncmp(buffer_recv, "team contains", 13))
             {
                 write(fifoTeam, buffer_recv, strlen(buffer_recv));
-                cltTCP->client_receive_tcp(cltTCP, buffer_recv, bufsize);
+                sscanf(buffer_recv, "team contains %d\n", &nbpoke);
+                ibuff = 0;
+                ipoke = 0;
+                do
+                {
+                    read(cltTCP->sock, &buffer_recv[ibuff], sizeof(char));
+                    if(buffer_recv[ibuff] == '\n'){
+                        ipoke++;
+                    }
+                    ibuff++;
+                }while (ipoke<nbpoke);
                 write(fifoTeam, buffer_recv, strlen(buffer_recv));
+                printf("%s\n", buffer_recv);
             }
-            else if(!strncmp(buffer_recv, "message", 7))
+            else if(!strncmp(buffer_recv, "rival message", 13))
             {
                 write(fifoTchat, buffer_recv, strlen(buffer_recv));
             }

@@ -75,7 +75,7 @@ int main(int argc, char const *argv[])
             }
             printf("%d %s\n", i, temp);
         }
-        printf("%s Select pokétudiant +", color_text(BLACK, LIGHT_GRAY, "[0...]"));
+        printf("%s Select pokétudiant + ", color_text(BLACK, LIGHT_GRAY, "[0...]"));
         printf("%s Move selected pokétudiant up ", color_text(BLACK, LIGHT_GRAY, "[up]"));
         printf("%s Move selected pokétudiant down ", color_text(BLACK, LIGHT_GRAY, "[down]"));
         printf("%s Free pokétudiant\n Example: [0 up]\n", color_text(BLACK, LIGHT_GRAY, "[free]"));

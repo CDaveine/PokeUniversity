@@ -5,7 +5,7 @@ team: team.o color.o
 	gcc -g -o team team.o color.o -pthread
 
 tchat: tchat.o
-	gcc -g -o tchat tchat.o
+	gcc -g -o tchat tchat.o -pthread
 
 obj/main.o: main.c
 	@mkdir -p obj
