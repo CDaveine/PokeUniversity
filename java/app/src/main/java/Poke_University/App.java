@@ -19,11 +19,13 @@ public class App{
                 Thread threadUDP = new Thread(serverUDP);
                 threadUDP.start();
         }
+        while(true){
         try (ServerTCP serverTCP = new ServerTCP()) {
                 serverTCP.run();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
         //udp
         /*try (ServerUDP s = new ServerUDP()) {

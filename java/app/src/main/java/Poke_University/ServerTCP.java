@@ -6,7 +6,8 @@ import java.net.*;
 // Server class
 class ServerTCP implements Closeable, Runnable{
 	private final static int PORT = 9001;
-	private static ServerSocket socket;
+	public ServerSocket socket;
+    Socket client;
 
     public ServerTCP() {
 		try {
@@ -33,53 +34,62 @@ class ServerTCP implements Closeable, Runnable{
         //while (true) {
                 // socket object to receive incoming client
                 // requests
-            try(Socket client = socket.accept()){
-                // Displaying that new client is connected
-                // to server
-            System.out.println("New client connected " + client.getInetAddress().getHostAddress());
-				// create a new thread object
-			ClientHandler clientSock = new ClientHandler(client);                // This thread will handle the client
-				// separately
-			new Thread(clientSock).start();
-            System.out.println("la");
-            }catch(IOException e){
-                e.printStackTrace();
+            while(true){
+                try{
+                    client = socket.accept();
+                    // Displaying that new client is connected
+                    // to server
+                //System.out.println("New client connected " + client.getInetAddress().getHostAddress());
+                    // create a new thread object
+                ClientHandler clientSock = new ClientHandler();                // This thread will handle the client
+                    // separately
+                new Thread(clientSock).start();
+                System.out.println("la");
+                }catch(IOException e){
+                    e.printStackTrace();
                 }
-			if (socket != null) {
+            }
+            
+			/*if (socket != null) {
 				try {
 					socket.close();
 				}
 				catch (IOException e) {
 					e.printStackTrace();
 				}
-			}
+			}*/
 		//}
     }
 
 
 					   
  // ClientHandler class
-private static class ClientHandler implements Runnable {
-	private final Socket clientSocket;	
-    String read;		   
+public class ClientHandler implements Runnable {
+	Socket clientSocket;	
+    String read;
+		   
 	// Constructor
-	public ClientHandler(Socket socket){
-		this.clientSocket = socket;
+	public ClientHandler(){
+		try {
+            //client = socket.accept();
+            System.out.println("Client Got connected ");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 	
 	public void run(){
-        PrintWriter out = null;
-        BufferedReader in = null;
         try {
+            System.out.println("hello");
+
             // get the outputstream of client
             // get the inputstream of client
             System.out.println("couccou");
-            System.out.println("client : " + clientSocket.getInetAddress().getHostAddress());
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
             System.out.println("je suis la");
             while ((read = in.readLine()) != null) {
                 if(read.contains("require game list")){
-                    out = new PrintWriter(clientSocket.getOutputStream(), true);
+                    PrintWriter out = new PrintWriter(client.getOutputStream(), true);
                     out.println("number of games 1\n bob bob\n");
                 }
             // writing the received message from
@@ -91,7 +101,7 @@ private static class ClientHandler implements Runnable {
     	catch (IOException e) {
             e.printStackTrace();
         }
-        finally {
+        /*finally {
 			try {
                 if (out != null) {
                     out.close();
@@ -104,7 +114,7 @@ private static class ClientHandler implements Runnable {
             catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 }
 
