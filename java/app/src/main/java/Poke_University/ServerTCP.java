@@ -8,6 +8,8 @@ class ServerTCP implements Closeable, Runnable{
 	private final static int PORT = 9001;
 	public ServerSocket socket;
     Socket client;
+    Game[] games = new Game[4];
+    Game game1 = new Game(2, "bob");
 
     public ServerTCP() {
 		try {
@@ -48,17 +50,8 @@ class ServerTCP implements Closeable, Runnable{
                 }catch(IOException e){
                     e.printStackTrace();
                 }
+
             }
-            
-			/*if (socket != null) {
-				try {
-					socket.close();
-				}
-				catch (IOException e) {
-					e.printStackTrace();
-				}
-			}*/
-		//}
     }
 
 
@@ -67,6 +60,8 @@ class ServerTCP implements Closeable, Runnable{
 public class ClientHandler implements Runnable {
 	Socket clientSocket;	
     String read;
+    PrintWriter out;
+    BufferedReader in;
 		   
 	// Constructor
 	public ClientHandler(){
@@ -77,44 +72,51 @@ public class ClientHandler implements Runnable {
             e.printStackTrace();
         }
 	}
+
+    private int taille_games(Game[] games){
+        int i = 0;
+        while(games[i] != null){
+            i++;
+        }
+        return i;
+    }
+
+    private String message_game(Game[] games){
+        String s = "number of games " + taille_games(games) + "\n";
+        for(int i = 0; i < taille_games(games); i++){
+            s += games[i].display();
+        }
+        return s;
+    }
 	
 	public void run(){
         try {
-            System.out.println("hello");
-
-            // get the outputstream of client
-            // get the inputstream of client
-            System.out.println("couccou");
-            BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            System.out.println("je suis la");
+            in = new BufferedReader(new InputStreamReader(client.getInputStream()));
             while ((read = in.readLine()) != null) {
                 if(read.contains("require game list")){
-                    PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-                    out.println("number of games 1\n bob bob\n");
+                    out = new PrintWriter(client.getOutputStream(), true);
+                    games[0]=game1;
+                    out.println(message_game(games));
                 }
-            // writing the received message from
-            // client
-            //System.out.printf(" Sent from the client: %s\n", read);
-			//out.println(line);
             }
         }
     	catch (IOException e) {
             e.printStackTrace();
         }
-        /*finally {
+        finally {
 			try {
                 if (out != null) {
                     out.close();
                 }
                 if (in != null) {
                     in.close();
-                    clientSocket.close();
+                    client.close();
                 }
             }
             catch (IOException e) {
                 e.printStackTrace();
             }
-        }*/
+        }
     }
 }
 
