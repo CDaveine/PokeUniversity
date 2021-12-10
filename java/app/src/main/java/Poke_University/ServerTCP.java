@@ -46,7 +46,6 @@ class ServerTCP implements Closeable, Runnable{
                 ClientHandler clientSock = new ClientHandler();                // This thread will handle the client
                     // separately
                 new Thread(clientSock).start();
-                System.out.println("la");
                 }catch(IOException e){
                     e.printStackTrace();
                 }
@@ -73,7 +72,7 @@ public class ClientHandler implements Runnable {
         }
 	}
 
-    private int taille_games(Game[] games){
+    private int size_games(Game[] games){
         int i = 0;
         while(games[i] != null){
             i++;
@@ -82,21 +81,68 @@ public class ClientHandler implements Runnable {
     }
 
     private String message_game(Game[] games){
-        String s = "number of games " + taille_games(games) + "\n";
-        for(int i = 0; i < taille_games(games); i++){
+        String s = "number of games " + size_games(games) + "\n";
+        for(int i = 0; i < size_games(games); i++){
             s += games[i].display();
         }
         return s;
     }
+
+    private boolean creation_game(String read){
+        String titre = read.substring(11);
+        Game game = new Game(1, titre);
+        if(size_games(games) < 4){
+            games[size_games(games)] = game;
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    private boolean join_game(String read){
+        String titre = read.substring(10);
+        for(int i = 0; i < size_games(games); i++){
+            if(games[i].getGame_name().equals(titre)){
+                if(games[i].getNb_player() < 4){
+                    return true;
+                }else{
+                    System.out.println("nb joueur max atteint");
+                }
+            }else{
+                System.out.println("cette partie n'existe pas");
+            }
+        } return false;
+    }
+
 	
 	public void run(){
+        while(true){
         try {
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            while ((read = in.readLine()) != null) {
+            out = new PrintWriter(client.getOutputStream(), true);
+            while ((read = in.readLine())!= null) {
+                System.out.println("message recu : " + read);
                 if(read.contains("require game list")){
-                    out = new PrintWriter(client.getOutputStream(), true);
                     games[0]=game1;
                     out.println(message_game(games));
+                } else if(read.contains("create game")){
+                    System.out.println("ok");
+                    if(creation_game(read) == true){
+                        System.out.println("ici");
+                        creation_game(read);
+                        System.out.println("la");
+                        out.println("game created\n");
+                        System.out.println("euh");
+                    }else{
+                        out.println("cannot create game\n");
+                    }
+                }else if (read.contains("join game")){
+                    if(join_game(read)){
+                        System.out.println("ok");
+                        out.println("game joined\n");
+                    }else{
+                        out.println("cannot join game\n");
+                    }
                 }
             }
         }
@@ -117,7 +163,7 @@ public class ClientHandler implements Runnable {
                 e.printStackTrace();
             }
         }
-    }
+    }}
 }
 
 }
