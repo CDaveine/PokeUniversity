@@ -89,7 +89,9 @@ public class ClientHandler implements Runnable {
                         System.out.println("ici");
                         System.out.println("la");
                         out.println("game created");
-                        System.out.println("game created");
+                        World world = new World("/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map");
+                        out.println(world.getMap());
+                        System.out.println(world.getMap());
                     }else{
                         out.println("cannot create game");
                     }
@@ -97,6 +99,9 @@ public class ClientHandler implements Runnable {
                     if(serv.join_game(read)){
                         System.out.println("ok");
                         out.println("game joined");
+                        World world = new World("/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map");
+                        out.println(world.getMap());
+                        System.out.println(world.getMap());
                     }else{
                         out.println("cannot join game");
                     }

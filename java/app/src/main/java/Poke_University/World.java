@@ -1,58 +1,48 @@
 package Poke_University;
 
-import java.util.Random;
+import java.io.*;
+import java.util.*;
 
 public class World {
-    private int size;
-    private Case[][] map;
+    private String map;
     
-    public World(int size){
-        int r, ri, rj;
-        Random alea = new Random();
-        this.size = size;
+    public String getMap() {
+        return map;
+    }
 
-        ri = alea.nextInt(size);
-        rj = alea.nextInt(size);
+    public void setMap(String map) {
+        this.map = map;
+    }
 
-        map[ri][rj] = new Heal();
+    public World(String s){
+        map = "map " + rows(read(s)) + " " + cols(read(s)) + "\n" + read(s);
+    }
 
-        for(int i = 0; i < size; i++){
-            for (int j = 0; j < size; j++) {
-                if(i != ri || j != rj){
-                    r = alea.nextInt(100);
-                    if (r < 75) {
-                        map[i][j] = new Floor();
-                    }
-                    else{
-                        map[i][j] = new Bush();
-                    }
-                }
+    public String read(String s){
+        File map = new File(s);
+        try{
+            Scanner scan = new Scanner(map);
+            String data = "";
+            while(scan.hasNextLine()){
+                data += scan.nextLine()+"\n";
+
             }
+            scan.close();
+            return data;
+        }catch(FileNotFoundException e){
+            e.printStackTrace();
+            return null;
         }
     }
 
-    public int getSize() {
-        return this.size;
+    public int rows(String s){
+        String[] rows = s.split("\n");
+        return rows.length;
     }
 
-    public Case getCase(int i, int j) {
-        return this.map[i][j];
+    public int cols(String s){
+        String[] first_row = s.split("\n");
+        return first_row[1].length();
     }
 
-    public void printMap() {
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if(map[i][j].getClass() == Floor.class){
-                    System.out.print("F ");
-                }
-                else if(map[i][j].getClass() == Bush.class){
-                    System.out.print("B ");
-                }
-                else{
-                    System.out.print("H ");
-                }
-            }
-            System.out.print("\n");
-        }
-    }
 }
