@@ -1,20 +1,42 @@
 package Poke_University;
 
+import Poke_University.ServerTCP.ClientHandler;
+
 public class Game {
     private int nb_player;
     private String game_name;
-    
+    private ClientHandler[] players;
+    private World map;
 
-    public Game(int n, String s){
+    public Game(int n, String s, ClientHandler creator) {
         this.nb_player = n;
         this.game_name = s;
+        players = new ClientHandler[4];
+        players[0] = creator;
+        map = new World("/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map");
     }
 
-    public String display(){
+    public World getMap() {
+        return map;
+    }
+
+    public void setMap(World map) {
+        this.map = map;
+    }
+
+    public ClientHandler getPlayers(int n) {
+        return players[n];
+    }
+
+    public void setPlayers(ClientHandler[] players) {
+        this.players = players;
+    }
+
+    public String display() {
         return nb_player + " " + game_name + "\n";
     }
 
-    public String display_sans(){
+    public String display_sans() {
         return nb_player + " " + game_name;
     }
 
@@ -33,5 +55,5 @@ public class Game {
     public void setGame_name(String game_name) {
         this.game_name = game_name;
     }
-    
+
 }
