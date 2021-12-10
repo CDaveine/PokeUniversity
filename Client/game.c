@@ -75,25 +75,22 @@ char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_r
             size = cltTCP->client_receive_tcp(cltTCP, buffer_recv, bufsize);
             buffer_recv[size]='\0';
 
-            if(*nbparty != 1){
-                temp = strtok(buffer_recv, "\n");
-                for (int i = 0; i < *nbparty; i++)
+            for (int i = 0; i < *nbparty; i++)
+            {
+                if(!i)
+                {
+                    temp = strtok(buffer_recv, "\n");
+                }
+                else
                 {
                     temp = strtok(NULL, "\n");
-                    printf("party %d: %s\n", i, temp);
-                    sscanf(temp, "%d %s", &nbplayer, pname);
-                    lparty[i] = (char *) malloc((strlen(pname)+1)*sizeof(char));
-                    strcpy(lparty[i], pname);
-                    lparty[i][strlen(pname)] = '\n';
                 }
-            }
-            else
-            {
-                printf("party 0: %s", buffer_recv);
-                sscanf(buffer_recv, "%d %s", &nbplayer, pname);
-                lparty[0] = (char *) malloc((strlen(pname)+1)*sizeof(char));
-                strcpy(lparty[0], pname);
-                lparty[0][strlen(pname)] = '\n';
+                printf("party %d: %s\n", i, temp);
+                sscanf(temp, "%d %[^\n]", &nbplayer, pname);
+                lparty[i] = (char *) malloc((strlen(pname)+2)*sizeof(char));
+                strcpy(lparty[i], pname);
+                lparty[i][strlen(pname)] = '\n';
+                lparty[i][strlen(pname)+1] = '\0';
             }
 
             printf("%s Return to servers list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
@@ -182,33 +179,27 @@ void show_player(char **map, int nbrow, int nbcol){
     {
         for (int j = xMin; j < xMax; j++)
         {
-            if(j > strlen(map[i])){
-                printf("%s", color_text(GREEN, LIGHT_GREEN, "🌿"));
-            }
-            else
+            switch (map[i][j])
             {
-                switch (map[i][j])
-                {
-                case ' ':
-                    printf("%s", color_text(GREEN, LIGHT_GREEN, "🌿"));
-                    break;
-                
-                case '*':
-                    printf("%s", color_text(GREEN, LIGHT_GREEN, "🥦"));
-                    break;
-                
-                case '0':
-                    printf("%s", color_text(GREEN, GREEN, "🧒"));
-                    break;
-                
-                case '+':
-                    printf("%s", color_text(GREEN, GREEN, "🏥"));
-                    break;
-                
-                default:
-                    printf("%s", color_text(GREEN, WHITE, "👦"));
-                    break;
-                }
+            case ' ':
+                printf("%s", color_text(GREEN, LIGHT_GREEN, "🌿"));
+                break;
+            
+            case '*':
+                printf("%s", color_text(GREEN, LIGHT_GREEN, "🥦"));
+                break;
+            
+            case '0':
+                printf("%s", color_text(GREEN, GREEN, "🧒"));
+                break;
+            
+            case '+':
+                printf("%s", color_text(GREEN, GREEN, "🏥"));
+                break;
+            
+            default:
+                printf("%s", color_text(GREEN, GREEN, "👦"));
+                break;
             }
         }
         printf("\n");
@@ -222,7 +213,7 @@ void print_map(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send){
     sscanf(buffer_recv, "map %d %d\n", &nbrow, &nbcol);
     
     temp = (char *) malloc((nbrow * (nbcol+1)) * sizeof(char));
-    cltTCP->client_receive_tcp(cltTCP, temp, (nbrow+1) * nbcol);
+    read(cltTCP->sock, temp, nbrow * (nbcol+1));
 
     map = (char **) malloc(nbrow * sizeof(char*));
     for (int i = 0; i < nbrow; i++)
@@ -415,8 +406,8 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
                     }
                     ibuff++;
                 }while (ipoke<nbpoke);
+                buffer_recv[ibuff] = '\0';
                 write(fifoTeam, buffer_recv, strlen(buffer_recv));
-                printf("%s\n", buffer_recv);
             }
             else if(!strncmp(buffer_recv, "rival message", 13))
             {

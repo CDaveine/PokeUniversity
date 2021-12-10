@@ -16,7 +16,7 @@ bool isRunning;
 void *thInput(void *nbpoke){
     char buf[SIZE], move[4];
     int fd, select, n, size;
-
+    
     if((fd = open("OUT_Team.fifo", O_WRONLY)) == -1){
         perror("can't opent Team.fifo please launch the client before");
         exit(1);
@@ -27,7 +27,16 @@ void *thInput(void *nbpoke){
         fgets(buf, SIZE, stdin);
         sscanf(buf, "%d %s\n", &select, move);
     }while((select < 0 || select >= n) || (strncmp(move, "up", 2) && strncmp(move, "down", 4) && strncmp(move, "free", 4)));
-    size = sprintf(buf, "poketudiant %d %s\n", select, move);
+    
+    if(!strncmp(move, "up", 2) || !strncmp(move, "down", 4))
+    {
+        size = sprintf(buf, "poketudiant %d move %s\n", select, move);
+    }
+    else
+    {
+        size = sprintf(buf, "poketudiant %d %s\n", select, move);
+    }
+    
     buf[size] = '\0';
     write(fd, buf, size+1);
 

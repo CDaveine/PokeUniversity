@@ -47,9 +47,9 @@ int main(int argc, char const *argv[])
         if(!strncmp(buffer, "exit", 4)){
             break;
         }
-        printf("%s", buffer);
-        sscanf(buffer, "rival message %s %s", name, msg);
-        printf("%s say's: %s", name, msg);
+        sscanf(buffer, "rival message %s %[^\n]", name, msg);
+        msg[strlen(msg)] = '\0';
+        printf("%s say's: %s\n", name, msg);
     }
 
     close(fd);

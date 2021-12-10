@@ -55,6 +55,10 @@ int main(int argc, char const *argv[])
                 do{
                     lparty = prompt_party_list(cltTCP, &nbparty, buffer_recv, buffer_send, SIZE);
                     iparty = atoi(buffer_send);
+                    if(!iparty && buffer_send[0] != '0')
+                    {
+                        iparty = -1;
+                    }
 
                     if(!strncmp(buffer_send, "create", 6))
                     {
@@ -64,7 +68,7 @@ int main(int argc, char const *argv[])
                         temp = (char *) malloc((13+strlen(buffer_send)) * sizeof(char));
                         strcpy(temp, "create game ");
                         strcat(temp, buffer_send);
-                        temp[strlen(buffer_recv)] = '\0';
+                        temp[strlen(temp)] = '\0';
 
                         cltTCP->client_send_tcp(cltTCP, temp);
                         if (nbparty)
@@ -89,7 +93,6 @@ int main(int argc, char const *argv[])
 
                         if(!strncmp(buffer_recv, "game created", 12)){
                             launch_game(cltTCP, buffer_send, buffer_recv, SIZE);
-                            clientTCP_close_and_free(cltTCP);
                             break;
                         }
                         
@@ -98,6 +101,7 @@ int main(int argc, char const *argv[])
                         // join party
                         strcpy(buffer_send, "join game ");
                         strncat(buffer_send, lparty[iparty], strlen(lparty[iparty]));
+                        buffer_send[strlen(buffer_send)] = '\0';
 
                         cltTCP->client_send_tcp(cltTCP, buffer_send);
                         cltTCP->client_receive_tcp(cltTCP, buffer_recv, SIZE);
@@ -111,7 +115,6 @@ int main(int argc, char const *argv[])
 
                         if(!strncmp(buffer_recv, "game joined", 11)){
                             launch_game(cltTCP, buffer_send, buffer_recv, SIZE);
-                            clientTCP_close_and_free(cltTCP);
                             break;
                         }
                     }
