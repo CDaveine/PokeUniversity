@@ -89,7 +89,7 @@ public class ClientHandler implements Runnable {
     }
 
     private boolean creation_game(String read){
-        String titre = read.substring(11);
+        String titre = read.substring(12);
         Game game = new Game(1, titre);
         if(size_games(games) < 4){
             games[size_games(games)] = game;
@@ -129,7 +129,6 @@ public class ClientHandler implements Runnable {
                     System.out.println("ok");
                     if(creation_game(read) == true){
                         System.out.println("ici");
-                        creation_game(read);
                         System.out.println("la");
                         out.println("game created\n");
                         System.out.println("euh");
