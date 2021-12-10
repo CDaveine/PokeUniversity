@@ -55,6 +55,7 @@ int main(int argc, char const *argv[])
                 do{
                     lparty = prompt_party_list(cltTCP, &nbparty, buffer_recv, buffer_send, SIZE);
                     iparty = atoi(buffer_send);
+
                     if(!iparty && buffer_send[0] != '0')
                     {
                         iparty = -1;

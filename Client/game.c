@@ -31,7 +31,7 @@ void prompt_server_list(struct sockaddr_in **servers, int nbserv, char *buffer_s
         }
 
         // choose the server
-        printf("%s Exit the game ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
+        printf("\n%s Exit the game ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
         printf("%s Refresh server list ", color_text(BLACK, LIGHT_GRAY, "[refresh]"));
         get_msg(strcat(color_text(BLACK, LIGHT_GRAY, "[0...]"), " Choose server"), buffer_send);
         iserv = atoi(buffer_send);
@@ -93,7 +93,7 @@ char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_r
                 lparty[i][strlen(pname)+1] = '\0';
             }
 
-            printf("%s Return to servers list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
+            printf("\n%s Return to servers list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
             printf("%s Refresh the party list ", color_text(BLACK, LIGHT_GRAY, "[refresh]")); // it could be everything because I've make the choice to don't stock the nbplayer
             printf("%s Create new party ", color_text(BLACK, LIGHT_GRAY, "[create]"));
             get_msg(strcat(color_text(BLACK, LIGHT_GRAY, "[0...]"), " Choose a party"), buffer_send);
@@ -134,45 +134,45 @@ void show_player(char **map, int nbrow, int nbcol){
         }
     }
 
-    if(nbcol < 10){
+    if(nbcol < 20){
         xMax = nbcol;
         xMin = 0;
     }
-    else if(x < 10)
+    else if(x < 20)
     {
-        xMax = 10;
+        xMax = 20;
         xMin = 0;
     }
-    else if(x > nbcol-10)
+    else if(x > nbcol-20)
     {
         xMax = nbcol;
-        xMin = nbcol-10;
+        xMin = nbcol-20;
     }
     else
     {
-        xMax = x+5;
-        xMin = x-5;
+        xMax = x+10;
+        xMin = x-10;
     }
     
     
-    if(nbrow < 10){
+    if(nbrow < 20){
         yMax = nbrow;
         yMin = 0;
     }
-    else if(y < 10)
+    else if(y < 20)
     {
-        yMax = 10;
+        yMax = 20;
         yMin = 0;
     }
-    else if(y > nbrow-10)
+    else if(y > nbrow-20)
     {
         yMax = nbrow;
-        yMin = nbrow-10;
+        yMin = nbrow-20;
     }
     else
     {
-        yMax = y+5;
-        yMin = y-5;
+        yMax = y+10;
+        yMin = y-10;
     }
 
     for (int i = yMin; i < yMax; i++)
@@ -198,7 +198,7 @@ void show_player(char **map, int nbrow, int nbcol){
                 break;
             
             default:
-                printf("%s", color_text(GREEN, GREEN, "👦"));
+                printf("%s", color_text(GREEN, GREEN, "👱"));
                 break;
             }
         }
@@ -231,7 +231,7 @@ void print_map(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send){
     system("clear");
     show_player(map, nbrow, nbcol);
     
-    printf("%s Return to server list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
+    printf("\n%s Return to server list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
     printf("%s Go up ", color_text(BLACK, LIGHT_GRAY, "[z]"));
     printf("%s Go down ", color_text(BLACK, LIGHT_GRAY, "[s]"));
     printf("%s Go left ", color_text(BLACK, LIGHT_GRAY, "[q]"));
@@ -278,23 +278,21 @@ void *thsend_move(void *clt){
     return NULL;
 }
 
-void start_fight(){
-    
-}
-
 void *thout_Team(void *clt){
     char buf[500];
-    int fd;
+    int fd, size;
     ClientTCP cltTcp;
 
     fd = open("OUT_Team.fifo", O_RDONLY);
     cltTcp = (struct clientTCP *) clt;
-    while(read(fd, buf, 500))
+    while(size = read(fd, buf, 500))
     {
         if (!strncmp(buf, "exit", 4))
         {
             break;
         }
+
+        buf[size] = '\0';
         cltTcp->client_send_tcp(cltTcp, buf);
     }
 
@@ -304,18 +302,23 @@ void *thout_Team(void *clt){
 
 void *thout_Tchat(void *clt){
     char buf[500];
-    int fd;
+    int fd, size;
     ClientTCP cltTcp;
 
     fd = open("OUT_Tchat.fifo", O_RDONLY);
     cltTcp = (struct clientTCP *) clt;
-    while(read(fd, buf, 500))
+    while(size = read(fd, buf, 500))
     {
+        buf[size] = '\0';
         cltTcp->client_send_tcp(cltTcp, buf);
     }
 
     close(fd);
     return NULL;
+}
+
+void start_fight(){
+    
 }
 
 void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv, int bufsize){
@@ -394,10 +397,9 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
             }
             else if(!strncmp(buffer_recv, "team contains", 13))
             {
-                write(fifoTeam, buffer_recv, strlen(buffer_recv));
                 sscanf(buffer_recv, "team contains %d\n", &nbpoke);
-                ibuff = 0;
                 ipoke = 0;
+
                 do
                 {
                     read(cltTCP->sock, &buffer_recv[ibuff], sizeof(char));
@@ -406,6 +408,7 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
                     }
                     ibuff++;
                 }while (ipoke<nbpoke);
+
                 buffer_recv[ibuff] = '\0';
                 write(fifoTeam, buffer_recv, strlen(buffer_recv));
             }
