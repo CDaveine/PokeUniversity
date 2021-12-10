@@ -8,8 +8,8 @@ class ServerTCP implements Closeable, Runnable{
 	private final static int PORT = 9001;
 	public ServerSocket socket;
     Socket client;
-    Game[] games = new Game[4];
-    Game game1 = new Game(2, "bob");
+    Server serv = new Server();
+
 
     public ServerTCP() {
 		try {
@@ -72,49 +72,7 @@ public class ClientHandler implements Runnable {
         }
 	}
 
-    private int size_games(Game[] games){
-        int i = 0;
-        while(games[i] != null){
-            i++;
-        }
-        return i;
-    }
-
-    private String message_game(Game[] games){
-        String s = "number of games " + size_games(games) + "\n";
-        for(int i = 0; i < size_games(games); i++){
-            s += games[i].display();
-        }
-        return s;
-    }
-
-    private boolean creation_game(String read){
-        String titre = read.substring(12);
-        Game game = new Game(1, titre);
-        if(size_games(games) < 4){
-            games[size_games(games)] = game;
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    private boolean join_game(String read){
-        String titre = read.substring(10);
-        for(int i = 0; i < size_games(games); i++){
-            if(games[i].getGame_name().equals(titre)){
-                if(games[i].getNb_player() < 4){
-                    return true;
-                }else{
-                    System.out.println("nb joueur max atteint");
-                }
-            }else{
-                System.out.println("cette partie n'existe pas");
-            }
-        } return false;
-    }
-
-	
+    
 	public void run(){
         while(true){
         try {
@@ -123,24 +81,24 @@ public class ClientHandler implements Runnable {
             while ((read = in.readLine())!= null) {
                 System.out.println("message recu : " + read);
                 if(read.contains("require game list")){
-                    games[0]=game1;
-                    out.println(message_game(games));
+                    System.out.print(serv.message_game());
+                    out.println(serv.message_game());
                 } else if(read.contains("create game")){
                     System.out.println("ok");
-                    if(creation_game(read) == true){
+                    if(serv.creation_game(read) == true){
                         System.out.println("ici");
                         System.out.println("la");
-                        out.println("game created\n");
-                        System.out.println("euh");
+                        out.println("game created");
+                        System.out.println("game created");
                     }else{
-                        out.println("cannot create game\n");
+                        out.println("cannot create game");
                     }
                 }else if (read.contains("join game")){
-                    if(join_game(read)){
+                    if(serv.join_game(read)){
                         System.out.println("ok");
-                        out.println("game joined\n");
+                        out.println("game joined");
                     }else{
-                        out.println("cannot join game\n");
+                        out.println("cannot join game");
                     }
                 }
             }
@@ -148,7 +106,7 @@ public class ClientHandler implements Runnable {
     	catch (IOException e) {
             e.printStackTrace();
         }
-        finally {
+        /*finally {
 			try {
                 if (out != null) {
                     out.close();
@@ -161,7 +119,7 @@ public class ClientHandler implements Runnable {
             catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }}
 }
 

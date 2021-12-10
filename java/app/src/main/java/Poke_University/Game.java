@@ -14,6 +14,10 @@ public class Game {
         return nb_player + " " + game_name + "\n";
     }
 
+    public String display_sans(){
+        return nb_player + " " + game_name;
+    }
+
     public int getNb_player() {
         return nb_player;
     }
