@@ -64,6 +64,7 @@ class ServerTCP implements Closeable, Runnable {
         int position_x;
         int position_y;
         int id;
+        Game game;
 
         // Constructor
         public ClientHandler() {
@@ -75,9 +76,11 @@ class ServerTCP implements Closeable, Runnable {
             }
         }
 
-        /*public void send_map(Game game){
-            World world = game.getMap();
-        } */
+        /*
+         * public void send_map(Game game){
+         * World world = game.getMap();
+         * }
+         */
 
         public void run() {
             while (true) {
@@ -115,7 +118,7 @@ class ServerTCP implements Closeable, Runnable {
                                 out.println("game joined");
                                 for (int i = 0; i < serv.size_games(serv.games); i++) {
                                     if (serv.games[i].getGame_name().contains(titre)) {
-                                        for(int j = 0; j < serv.games[i].getNb_player(); j++){
+                                        for (int j = 0; j < serv.games[i].getNb_player(); j++) {
                                             world = serv.games[i].getMap(serv.games[i].getPlayers(j));
                                             PrintWriter out_perso = new PrintWriter(serv.games[i].getPlayers(j).socketaccept.getOutputStream(), true);
                                             out_perso.println(world.getMap());
@@ -125,6 +128,18 @@ class ServerTCP implements Closeable, Runnable {
                                 }
                             } else {
                                 out.println("cannot join game");
+                            }
+                        } else if (read.contains("map move")) {
+                            String move = read.substring(9);
+                            serv.move_to(move, this, this.game);
+                            for (int i = 0; i < serv.size_games(serv.games); i++) {
+                                for (int j = 0; j < serv.games[i].getNb_player(); j++) {
+                                    World world = serv.games[i].getMap(serv.games[i].getPlayers(j));
+                                    PrintWriter out_perso = new PrintWriter(serv.games[i].getPlayers(j).socketaccept.getOutputStream(), true);
+                                    out_perso.println(world.getMap());
+                                    System.out.println(world.getMap());
+
+                                }
                             }
                         }
                     }

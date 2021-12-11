@@ -33,18 +33,19 @@ public class Server {
 
     public boolean creation_game(String read, ClientHandler creator) {
         String titre = read.substring(12);
-        
-        //premiere game créée
+
+        // premiere game créée
         if (size_games(games) == 0) {
             Game game = new Game(1, titre, creator);
             games[0] = game;
             creator.position_x = 0;
-            creator.position_y = 0; 
+            creator.position_y = 0;
             creator.id = 1;
+            creator.game = game;
             return true;
         } else {
 
-            //pas premiere game
+            // pas premiere game
             for (int i = 0; i < size_games(games); i++) {
                 if (!games[i].getGame_name().contains(titre) && size_games(games) < 4) {
                     Game game = new Game(1, titre, creator);
@@ -52,10 +53,11 @@ public class Server {
                     creator.position_x = 0;
                     creator.position_y = 0;
                     creator.id = 1;
+                    creator.game = game;
                     return true;
                 }
             }
-            //si trop de parties ou deja un game a ce nom
+            // si trop de parties ou deja un game a ce nom
             return false;
         }
     }
@@ -70,6 +72,7 @@ public class Server {
                     joueur.position_x = 1;
                     joueur.position_y = 1;
                     joueur.id = games[i].getNb_player();
+                    joueur.game = games[i];
                     return titre;
                 } else {
                     System.out.println("nb joueur max atteint");
@@ -79,6 +82,26 @@ public class Server {
             }
         }
         return null;
+    }
+
+    public void move_to(String move, ClientHandler joueur, Game game) {
+        if (move.equals("up")) {
+            if (joueur.position_x != 0) {
+                joueur.position_x--;
+            }
+        } else if (move.equals("left")) {
+            if (joueur.position_y != 0) {
+                joueur.position_y--;
+            }
+        } else if (move.equals("down")) {
+            if (joueur.position_x != game.getMap(joueur).cols(game.getMap(joueur).getMap())) {
+                joueur.position_x++;
+            }
+        } else if (move.equals("right")) {
+            if (joueur.position_y != game.getMap(joueur).rows(game.getMap(joueur).getMap())) {
+                joueur.position_y++;
+            }
+        }
     }
 
 }
