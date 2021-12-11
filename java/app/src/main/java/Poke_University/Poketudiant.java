@@ -2,7 +2,6 @@ package Poke_University;
 
 import java.lang.Math;
 import java.util.Random;
-import Poke_University.*;
 
 public abstract class Poketudiant {
     protected String nom;

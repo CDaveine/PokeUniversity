@@ -1,6 +1,5 @@
 package Poke_University;
 
-import Poke_University.*;
 
 public class Fight {
     

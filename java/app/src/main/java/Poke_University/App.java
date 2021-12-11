@@ -1,10 +1,6 @@
 
 package Poke_University;
 
-import Poke_University.*;
-import java.io.*;
-import java.net.*;
-import java.io.Closeable;
 import java.io.IOException;
 
 public class App {
