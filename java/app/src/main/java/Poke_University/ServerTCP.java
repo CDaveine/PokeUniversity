@@ -2,7 +2,8 @@ package Poke_University;
 
 import java.io.*;
 import java.net.*;
-import java.util.Map;
+
+import Poke_University.Poketudiants.Enseignant_dresseur;
 
 // Server class
 class ServerTCP implements Closeable, Runnable {
@@ -65,6 +66,7 @@ class ServerTCP implements Closeable, Runnable {
         int position_y;
         int id;
         Game game;
+        Enseignant_dresseur dresseur;
 
         // Constructor
         public ClientHandler() {
@@ -101,7 +103,9 @@ class ServerTCP implements Closeable, Runnable {
                         if (read.contains("create game")) {
                             if (serv.creation_game(read, this)) {
                                 out.println("game created");
-                                System.out.println(position_x + " " + position_y + " " + id);
+                                dresseur = new Enseignant_dresseur();
+                                String team = serv.team(this);
+                                out.println(team);
                                 World world = serv.games[serv.size_games(serv.games) - 1].getMap(this);
                                 out.println(world.getMap());
                             } else {
@@ -115,6 +119,9 @@ class ServerTCP implements Closeable, Runnable {
                             World world;
                             if ((titre = serv.join_game(read, this)) != null) {
                                 out.println("game joined");
+                                dresseur = new Enseignant_dresseur();
+                                String team = serv.team(this);
+                                out.println(team);
                                 for (int i = 0; i < serv.size_games(serv.games); i++) {
                                     if (serv.games[i].getGame_name().contains(titre)) {
                                         for (int j = 0; j < serv.games[i].getNb_player(); j++) {
@@ -200,6 +207,7 @@ class ServerTCP implements Closeable, Runnable {
 
             }
         }
+
     }
 
 }

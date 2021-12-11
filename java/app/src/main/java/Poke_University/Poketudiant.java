@@ -28,6 +28,114 @@ public abstract class Poketudiant {
         return random.nextInt(max);
     }
 
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public boolean isCatchable() {
+        return catchable;
+    }
+
+    public void setCatchable(boolean catchable) {
+        this.catchable = catchable;
+    }
+
+    public Poketudiant getEvolution() {
+        return evolution;
+    }
+
+    public void setEvolution(Poketudiant evolution) {
+        this.evolution = evolution;
+    }
+
+    public double getCoef() {
+        return coef;
+    }
+
+    public void setCoef(double coef) {
+        this.coef = coef;
+    }
+
+    public int getAttack() {
+        return attack;
+    }
+
+    public void setAttack(int attack) {
+        this.attack = attack;
+    }
+
+    public int getDefense() {
+        return defense;
+    }
+
+    public void setDefense(int defense) {
+        this.defense = defense;
+    }
+
+    public int getPV_max() {
+        return PV_max;
+    }
+
+    public void setPV_max(int pV_max) {
+        PV_max = pV_max;
+    }
+
+    public int getPV_current() {
+        return PV_current;
+    }
+
+    public void setPV_current(int pV_current) {
+        PV_current = pV_current;
+    }
+
+    public Attack[] getAttacks() {
+        return attacks;
+    }
+
+    public void setAttacks(Attack[] attacks) {
+        this.attacks = attacks;
+    }
+
+    public int getXp() {
+        return xp;
+    }
+
+    public void setXp(int xp) {
+        this.xp = xp;
+    }
+
+    public int getXp_max() {
+        return xp_max;
+    }
+
+    public void setXp_max(int xp_max) {
+        this.xp_max = xp_max;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public String display(){
+        return nom + " " + type + " " + level + " " + xp + " " + xp_max + " " + PV_current + " " + PV_max + " " + attack + " " + defense + " " + attacks[0].getNom() + " " + attacks[0].getType() + " " + attacks[1].getNom() + " " + attacks[1].getType();
+    }
+
     protected Attack other_type_attack(Type type) {
         Random random = new Random();
         int rand = random.nextInt(Attacks.attacks.length);
@@ -35,12 +143,6 @@ public abstract class Poketudiant {
             rand = random.nextInt(Attacks.attacks.length);
         }
         return Attacks.attacks[rand];
-    }
-
-    protected void display() {
-        System.out.println("Voici un " + nom + " il est de type " + type + " sa puissance d'attaque est de " + attack
-                + " sa defense est de " + defense + " de niveau " + level + "\n PV: " + PV_current + "/" + PV_max
-                + "\n XP: " + xp + "/" + xp_max);
     }
 
     protected void attack(Poketudiant opponent, Attack att) {

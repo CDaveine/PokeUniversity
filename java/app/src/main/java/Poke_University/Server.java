@@ -120,4 +120,14 @@ public class Server {
         }
     }
 
+    public String team(ClientHandler player){
+        String msg = "team contains" + player.dresseur.size_poke() + "\n";
+
+        for(int i = 0; i < player.dresseur.size_poke(); i++){
+            msg += player.dresseur.getPoketudiants(i).display() + "\n";
+        }
+
+        return msg;
+    }
+
 }
