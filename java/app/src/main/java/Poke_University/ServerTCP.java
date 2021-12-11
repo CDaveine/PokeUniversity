@@ -2,6 +2,7 @@ package Poke_University;
 
 import java.io.*;
 import java.net.*;
+import java.util.Map;
 
 // Server class
 class ServerTCP implements Closeable, Runnable {
@@ -60,6 +61,9 @@ class ServerTCP implements Closeable, Runnable {
         PrintWriter out;
         BufferedReader in;
         Socket socketaccept = client;
+        int position_x;
+        int position_y;
+        int id;
 
         // Constructor
         public ClientHandler() {
@@ -70,6 +74,10 @@ class ServerTCP implements Closeable, Runnable {
                 e.printStackTrace();
             }
         }
+
+        /*public void send_map(Game game){
+            World world = game.getMap();
+        } */
 
         public void run() {
             while (true) {
@@ -90,7 +98,8 @@ class ServerTCP implements Closeable, Runnable {
                         if (read.contains("create game")) {
                             if (serv.creation_game(read, this)) {
                                 out.println("game created");
-                                World world = serv.games[serv.size_games(serv.games) - 1].getMap();
+                                System.out.println(position_x + " " + position_y + " " + id);
+                                World world = serv.games[serv.size_games(serv.games) - 1].getMap(this);
                                 out.println(world.getMap());
                                 System.out.println(world.getMap());
                             } else {
@@ -106,7 +115,8 @@ class ServerTCP implements Closeable, Runnable {
                                 out.println("game joined");
                                 for (int i = 0; i < serv.size_games(serv.games); i++) {
                                     if (serv.games[i].getGame_name().contains(titre)) {
-                                        world = serv.games[i].getMap();
+                                        System.out.println(serv.games[i].getNb_player()+" "+serv.games[i].getPlayersSize());
+                                        world = serv.games[i].getMap(this);
                                         out.println(world.getMap());
                                         System.out.println(world.getMap());
                                     }

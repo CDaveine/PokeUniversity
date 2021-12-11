@@ -13,23 +13,33 @@ public class Game {
         this.game_name = s;
         players = new ClientHandler[4];
         players[0] = creator;
-        map = new World("/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map");
+        map = new World("/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map", creator, this);
     }
 
-    public World getMap() {
-        return map;
+    public World getMap(ClientHandler joueur) {
+        return map = new World("/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map", joueur, this);
     }
 
     public void setMap(World map) {
         this.map = map;
     }
 
+    public int getPlayersSize(){
+        int nb = 0;
+        for(int i = 0; i < players.length; i++){
+            if(players[i] != null){
+                nb++;
+            }
+        }
+        return nb;
+    }
+
     public ClientHandler getPlayers(int n) {
         return players[n];
     }
 
-    public void setPlayers(ClientHandler[] players) {
-        this.players = players;
+    public void setPlayers(ClientHandler player) {
+        this.players[nb_player - 1] = player;
     }
 
     public String display() {
