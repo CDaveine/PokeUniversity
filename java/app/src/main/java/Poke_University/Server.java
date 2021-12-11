@@ -67,8 +67,8 @@ public class Server {
                 if (games[i].getNb_player() < 4) {
                     games[i].setNb_player(games[i].getNb_player() + 1);
                     games[i].setPlayers(joueur);
-                    joueur.position_x = 0;
-                    joueur.position_y = 0;
+                    joueur.position_x = 1;
+                    joueur.position_y = 1;
                     joueur.id = games[i].getNb_player();
                     return titre;
                 } else {

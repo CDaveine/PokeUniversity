@@ -41,10 +41,11 @@ public class World {
         char[][] tab = map_tab(map);
         for (int i = 0; i < game.getNb_player(); i++) {
             if (game.getPlayers(i).id == moi.id) {
-                tab[moi.position_x][moi.position_y] = '0';
+
             } else {
                 tab[game.getPlayers(i).position_x][game.getPlayers(i).position_y] =  Integer.toString(game.getPlayers(i).id).charAt(0);
             }
+            tab[moi.position_x][moi.position_y] = '0';
         }
         String new_map = tab_map(tab);
         return new_map;

@@ -115,10 +115,12 @@ class ServerTCP implements Closeable, Runnable {
                                 out.println("game joined");
                                 for (int i = 0; i < serv.size_games(serv.games); i++) {
                                     if (serv.games[i].getGame_name().contains(titre)) {
-                                        System.out.println(serv.games[i].getNb_player()+" "+serv.games[i].getPlayersSize());
-                                        world = serv.games[i].getMap(this);
-                                        out.println(world.getMap());
-                                        System.out.println(world.getMap());
+                                        for(int j = 0; j < serv.games[i].getNb_player(); j++){
+                                            world = serv.games[i].getMap(serv.games[i].getPlayers(j));
+                                            PrintWriter out_perso = new PrintWriter(serv.games[i].getPlayers(j).socketaccept.getOutputStream(), true);
+                                            out_perso.println(world.getMap());
+                                            System.out.println(world.getMap());
+                                        }
                                     }
                                 }
                             } else {
