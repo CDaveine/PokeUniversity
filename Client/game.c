@@ -8,8 +8,10 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <sys/select.h>
+#include <wait.h>
 
 #include "clientTCP.h"
+#include "poketudiant.h"
 #include "color.h"
 
 // private global var for threads
@@ -106,7 +108,7 @@ char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_r
         }
         else{
             printf("no parties found\n");
-            printf("%s Return to servers list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
+            printf("\n%s Return to servers list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
             printf("%s Refresh the party list ", color_text(BLACK, LIGHT_GRAY, "[refresh]"));
             get_msg(strcat(color_text(BLACK, LIGHT_GRAY, "[create]"), " Create new party"), buffer_send);
             iparty = -1;
@@ -206,15 +208,11 @@ void show_player(char **map, int nbrow, int nbcol){
     }
 }
 
-void print_map(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send){
-    int nbrow, nbcol;
+void update_map(const char *bufmap, int nbrow, int nbcol){
     char *temp, **map;
-
-    sscanf(buffer_recv, "map %d %d\n", &nbrow, &nbcol);
     
-    temp = (char *) malloc((nbrow * (nbcol+1)) * sizeof(char));
-    read(cltTCP->sock, temp, nbrow * (nbcol+1));
-
+    temp = (char *) malloc((nbrow * (nbcol+1)+1) * sizeof(char));
+    strcpy(temp, bufmap);
     map = (char **) malloc(nbrow * sizeof(char*));
     for (int i = 0; i < nbrow; i++)
     {
@@ -317,12 +315,160 @@ void *thout_Tchat(void *clt){
     return NULL;
 }
 
-void start_fight(){
-    
+void start_fight(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send, int bufsize, char *bufmap, int *nbrow, int *nbcol, int fifoTeam, int fifoTchat){
+    bool isrival;
+    int ibuff, ipoke, pokesel, nbpoke, nbopp, size;
+    char msg[bufsize], temp;
+    t_poketudiant poke, opp;
+    float pokeLife, oppLife;
+
+    bufmap = NULL;
+    nbpoke = 1;
+
+    system("clear");
+
+    if(isrival = strncmp(buffer_recv, "encounter new wild", 18))
+    {
+        sscanf(buffer_recv, "encounter new wild %d\n", &nbopp);
+    }
+    else
+    {
+        sscanf(buffer_recv, "encounter new rival %d\n", &nbopp);
+    }
+
+    do
+    {
+        ibuff = 0;
+        do
+        {
+            read(cltTCP->sock, &buffer_recv[ibuff], sizeof(char));
+            ibuff++;
+        }while(buffer_recv[ibuff-1]!='\n');
+        buffer_recv[ibuff]='\0';
+        printf("%s\n", buffer_recv);
+
+        if(!strncmp(buffer_recv, "map", 3))
+        {
+            sscanf(buffer_recv, "map %d %d\n", nbrow, nbcol);
+            free(bufmap);
+            bufmap = (char *) malloc((*nbrow * (*nbcol+1)+1) * sizeof(char));
+            size = read(cltTCP->sock, bufmap, *nbrow * (*nbcol+1));
+            bufmap[size] = '\0';
+        }
+        else if(!strncmp(buffer_recv, "team contains", 13))
+        {
+            sscanf(buffer_recv, "team contains %d\n", &nbpoke);
+            ipoke = 0;
+            do
+            {
+                read(cltTCP->sock, &buffer_recv[ibuff], sizeof(char));
+                if(buffer_recv[ibuff] == '\n')
+                {
+                    ipoke++;
+                }
+                ibuff++;
+            }while (ipoke<nbpoke);
+
+            buffer_recv[ibuff] = '\0';
+            write(fifoTeam, buffer_recv, strlen(buffer_recv));
+        }
+        else if(!strncmp(buffer_recv, "rival message", 13))
+        {
+            write(fifoTchat, buffer_recv, strlen(buffer_recv));
+        }
+        else if(!strncmp(buffer_recv, "encounter poketudiant player", 28))
+        {
+            sscanf(buffer_recv, "encounter poketudiant player %s %d %f %s %s %s %s\n", 
+            poke.variety, &poke.lvl, &pokeLife, poke.attack1, poke.attack1type, poke.attack2, poke.attack2type);
+
+            printf("🧒 Your Pokétudiant:\n");
+            printf(" │ %s %s lvl: %d  ❤️  %f\n", get_pokemoji(poke), poke.variety, poke.lvl, pokeLife);
+            printf(" │ attack 1: %s type: %s\n", poke.attack1, poke.attack1type);
+            printf(" │ attack 2: %s type: %s\n\n", poke.attack2, poke.attack2type);
+        }
+        else if(!strncmp(buffer_recv, "encounter poketudiant opponent", 30))
+        {
+            sscanf(buffer_recv, "encounter poketudiant opponent %s %d %f\n", 
+            opp.variety, &opp.lvl, &oppLife);
+
+            printf("👱 Opponent Pokétudiant:\n");
+            printf(" │ %s %s lvl: %d  ❤️  %f\n", get_pokemoji(opp), opp.variety, opp.lvl, oppLife);
+        }
+        else if(!strncmp(buffer_recv, "encounter enter action", 22))
+        {
+            printf("\n%s Attack %s ", color_text(BLACK, LIGHT_GRAY, "[attack1]"), poke.attack1);
+            printf("%s Attack %s ", color_text(BLACK, LIGHT_GRAY, "[attack2]"), poke.attack2);
+
+            if(nbpoke > 1)
+            {
+                printf("%s Switch your pokemon ", color_text(BLACK, LIGHT_GRAY, "[switch]"));
+            }
+
+            if(!isrival){
+                printf("%s Try to catch %s %s ", color_text(BLACK, LIGHT_GRAY, "[catch]"), get_pokemoji(opp), opp.variety);
+                printf("%s Try to escape the fight\n ", color_text(WHITE, LIGHT_BLUE, "[leave]"));
+            }
+            printf("\n");
+            do
+            {
+                fgets(msg, bufsize, stdin);
+                printf("%s\n", msg);
+            }while(strncmp(msg, "attack1", 7) && strncmp(msg, "attack2", 7) && (isrival || (strncmp(msg, "catch", 5) &&  strncmp(msg, "leave", 5))) && (nbpoke==1 || strncmp(msg, "switch", 6)));
+
+            strcpy(buffer_send, "encounter action ");
+            strncat(buffer_send, msg, strlen(msg));
+            cltTCP->client_send_tcp(cltTCP, buffer_send);
+        }
+        else if(!strncmp(buffer_recv, "encounter enter poketudiant index", 33))
+        {
+            printf("\n%s Choose the pokétudiant to switch\n", color_text(LIGHT_GRAY, BLACK, "[0...]"));
+            do
+            {
+                fgets(msg, bufsize, stdin);
+                pokesel = atoi(msg);
+                if(!pokesel && msg[0] != '0'){
+                    pokesel = -1;
+                }
+            }while(pokesel < 0 && pokesel >= nbpoke);
+            sprintf(msg,"%d\n", pokesel);
+
+            strcpy(buffer_send, "encounter action ");
+            strcat(buffer_send, msg);
+            cltTCP->client_send_tcp(cltTCP, buffer_send);
+        }
+        else if(!strncmp(buffer_recv, "encounter escape fail", 21))
+        {
+            printf("%s %s catches up with you\n", get_pokemoji(opp), opp.variety);
+        }
+        else if(!strncmp(buffer_recv, "encounter KO opponent", 21))
+        {
+            printf("\n Opponent: %s %s ☠️", get_pokemoji(opp), opp.variety);
+        }
+        else if(!strncmp(buffer_recv, "encounter KO player", 19))
+        {
+            printf("\n You: %s %s ☠️", get_pokemoji(poke), poke.variety);
+        }
+    }while(strncmp(buffer_recv, "encounter win", 13) && strncmp(buffer_recv, "encounter lose", 14) && strncmp(buffer_recv, "encounter escape ok", 19));
+
+    if(!strncmp(buffer_recv, "encounter win", 13))
+    {
+        printf("\n🎉 You win 🎉\n");
+    }
+    else if(!strncmp(buffer_recv, "encounter lose", 14))
+    {
+        printf("\n😥 You lose 😥\n");
+    }
+    else
+    {
+        printf("\n %s %s join your team 🎉\n", get_pokemoji(opp), opp.variety);
+    }
+    get_msg("press any key to continue", msg);
 }
 
 void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv, int bufsize){
-    int ibuff, fifoTeam, fifoTchat, nbpoke, ipoke;
+    int ibuff, fifoTeam, fifoTchat, nbrow, nbcol, nbpoke, ipoke, size;
+    char *bufmap;
+    t_poketudiant poke;
     pid_t pidTeam, pidTchat;
     pthread_t threadMap, threadTeam, threadTchat;
     fd_set rfds;
@@ -336,32 +482,38 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
     unlink("IN_Tchat.fifo");
     unlink("OUT_Tchat.fifo");
 
-    if(mkfifo("IN_Team.fifo", 0777) == -1){
+    if(mkfifo("IN_Team.fifo", 0777) == -1)
+    {
         perror("error create Team.fifo");
         exit(1);
     }
 
-    if(mkfifo("OUT_Team.fifo", 0777) == -1){
+    if(mkfifo("OUT_Team.fifo", 0777) == -1)
+    {
         perror("error create Team.fifo");
         exit(1);
     }
     
-    if(mkfifo("IN_Tchat.fifo", 0777) == -1){
+    if(mkfifo("IN_Tchat.fifo", 0777) == -1)
+    {
         perror("error create Tchat.fifo");
         exit(1);
     }
 
-    if(mkfifo("OUT_Tchat.fifo", 0777) == -1){
+    if(mkfifo("OUT_Tchat.fifo", 0777) == -1)
+    {
         perror("error create Tchat.fifo");
         exit(1);
     }
 
-    if((pidTeam = system("gnome-terminal -- ./team"))==-1){
+    if((pidTeam = system("gnome-terminal -- ./team"))==-1)
+    {
         perror("couldn't launch team");
         exit(1);
     }
 
-    if((pidTchat = system("gnome-terminal -- ./tchat"))==-1){
+    if((pidTchat = system("gnome-terminal -- ./tchat"))==-1)
+    {
         perror("couldn't launch tchat");
         exit(1);
     }
@@ -379,7 +531,8 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
         FD_ZERO(&rfds);
         FD_SET(cltTCP->sock, &rfds);
 
-        if(select(cltTCP->sock+1, &rfds, NULL, NULL, &tv)){
+        if(select(cltTCP->sock+1, &rfds, NULL, NULL, &tv))
+        {
             ibuff = 0;
             do
             {
@@ -389,7 +542,12 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
             buffer_recv[ibuff]='\0';
 
             if(!strncmp(buffer_recv, "map", 3)){
-                print_map(cltTCP, buffer_recv, buffer_send);
+                sscanf(buffer_recv, "map %d %d\n", &nbrow, &nbcol);
+                
+                bufmap = (char *) malloc((nbrow * (nbcol+1)+1) * sizeof(char));
+                size = read(cltTCP->sock, bufmap, nbrow * (nbcol+1));
+                bufmap[size] = '\0';
+                update_map(bufmap, nbrow, nbcol);
                 if(!isRunning){
                     isRunning = true;
                     pthread_create(&threadMap, NULL, thsend_move, (void *) cltTCP);
@@ -403,7 +561,8 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
                 do
                 {
                     read(cltTCP->sock, &buffer_recv[ibuff], sizeof(char));
-                    if(buffer_recv[ibuff] == '\n'){
+                    if(buffer_recv[ibuff] == '\n')
+                    {
                         ipoke++;
                     }
                     ibuff++;
@@ -416,6 +575,38 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
             {
                 write(fifoTchat, buffer_recv, strlen(buffer_recv));
             }
+            else if(!strncmp(buffer_recv, "encounter new", 13))
+            {
+                write(fifoTeam, "fight\n", 6);
+                pthread_cancel(threadMap);
+                isRunning = false;
+                start_fight(cltTCP, buffer_recv, buffer_send, bufsize, bufmap, &nbrow, &nbcol, fifoTeam, fifoTchat);
+                write(fifoTeam, "endfight\n", 9);
+                update_map(bufmap, nbrow, nbcol);
+                if(!isRunning){
+                    isRunning = true;
+                    pthread_create(&threadMap, NULL, thsend_move, (void *) cltTCP);
+                }
+            }
+            else if(!strncmp(buffer_recv, "encounter poketudiant xp", 27))
+            {
+                sscanf(buffer_recv, "encounter poketudiant xp %d %d", &ipoke, &poke.lvl);
+                printf("Pokétudiant %d gain %d experience\n", ipoke, poke.lvl);
+                get_msg("press any key to continue", buffer_send);
+            }
+            else if(!strncmp(buffer_recv, "encounter poketudiant level", 27))
+            {
+                sscanf(buffer_recv, "encounter poketudiant level %d %d", &ipoke, &poke.lvl);
+                printf("Pokétudiant %d level to level %d\n", ipoke, poke.lvl);
+                get_msg("press any key to continue", buffer_send);
+            }
+            else if(!strncmp(buffer_recv, "encounter poketudiant evolution", 27))
+            {
+                sscanf(buffer_recv, "encounter poketudiant evolution %d %s", &ipoke, poke.variety);
+                printf("Pokétudiant %d evolve in %s %s\n", ipoke, get_pokemoji(poke), poke.variety);
+                get_msg("press any key to continue", buffer_send);
+            }            
+            
         }
     }while(!isExit);
 

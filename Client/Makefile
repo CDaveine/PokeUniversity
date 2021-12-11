@@ -1,8 +1,8 @@
-client: main.o clientbrc.o clientTCP.o game.o error.o color.o
-	gcc -g -o client main.o clientbrc.o clientTCP.o game.o error.o color.o -pthread
+client: main.o clientbrc.o clientTCP.o game.o poketudiant.o error.o color.o
+	gcc -g -o client main.o clientbrc.o clientTCP.o game.o poketudiant.o error.o color.o -pthread
 
-team: team.o color.o
-	gcc -g -o team team.o color.o -pthread
+team: team.o color.o poketudiant.o
+	gcc -g -o team team.o color.o poketudiant.o -pthread
 
 tchat: tchat.o
 	gcc -g -o tchat tchat.o -pthread
@@ -38,6 +38,10 @@ obj/team.o: team.c
 obj/tchat.o: tchat.c
 	@mkdir -p obj
 	gcc -c tchat.c -o obj/tchat.o
+
+obj/poketudiant.o: poketudiant.c
+	@mkdir -p obj
+	gcc -c poketudiant.c -o obj/poketudiant.o
 
 clean:
 	@rm client

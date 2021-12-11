@@ -8,11 +8,13 @@
 #include <pthread.h>
 
 #include "color.h"
+#include "poketudiant.h"
 
 #define SIZE  500
 
 int nbpoke;
 bool isExit;
+bool isFight;
 
 void *thInput(void *nothing){
     char buf[SIZE], move[4];
@@ -23,7 +25,7 @@ void *thInput(void *nothing){
         exit(1);
     }
     
-    while (!isExit)
+    while (!isExit && !isFight)
     {
         if(!nbpoke)
         {
@@ -34,6 +36,11 @@ void *thInput(void *nothing){
             fgets(buf, SIZE, stdin);
             sscanf(buf, "%d %s\n", &select, move);
         }while((select < 0 || select >= nbpoke) || (strncmp(move, "up", 2) && strncmp(move, "down", 4) && strncmp(move, "free", 4)));
+        
+        if (isFight)
+        {
+            continue;
+        }
         
         if(!strncmp(move, "up", 2) || !strncmp(move, "down", 4))
         {
@@ -52,78 +59,6 @@ void *thInput(void *nothing){
     return NULL;
 }
 
-typedef struct
-{
-    char variety[25];
-    char type[25];
-    int lvl, currxp, xpnextlvl;
-    int pv, maxpv;
-    int att, def;
-    char attack1[25], attack1type[25];
-    char attack2[25], attack2type[25];
-}t_poketudiant;
-
-char * get_pokemoji(t_poketudiant poketudiant)
-{
-    if(!strncmp(poketudiant.variety, "Parlfor", 7))
-    {
-        return "😃";
-    }
-    else if(!strncmp(poketudiant.variety, "Ismar", 5))
-    {
-        return "😄";
-    }
-    else if(!strncmp(poketudiant.variety, "Rigolamor", 9))
-    {
-        return "😂";
-    }
-    else if(!strncmp(poketudiant.variety, "Proscratino", 11))
-    {
-        return "🥱";
-    }
-    else if(!strncmp(poketudiant.variety, "Couchtar", 8))
-    {
-        return "🥳";
-    }
-    else if(!strncmp(poketudiant.variety, "Nuidebou", 8))
-    {
-        return "😈";
-    }
-    else if(!strncmp(poketudiant.variety, "Alabourre", 9))
-    {
-        return "😱";
-    }
-    else if(!strncmp(poketudiant.variety, "Buchafon", 8))
-    {
-        return "👨‍💻";
-    }
-    else if(!strncmp(poketudiant.variety, "Belmention", 10))
-    {
-        return "🧑‍⚖️";
-    }
-    else if(!strncmp(poketudiant.variety, "Promomajor", 10))
-    {
-        return "👨‍🎓";
-    }
-    else if(!strncmp(poketudiant.variety, "Enseignant-dresseur", 19))
-    {
-        return "👨‍🏫";
-    }
-    else
-    {
-        return " ";
-    }
-}
-
-void print_poketudiant(t_poketudiant poketudiant)
-{
-    printf(" │ %s Variety: %s Type: %s\n", get_pokemoji(poketudiant), poketudiant.variety, poketudiant.type);
-    printf(" │ ❤️  %d/%d\n", poketudiant.pv, poketudiant.maxpv);
-    printf(" │ ⚔️  %d 🛡️  %d\n", poketudiant.att, poketudiant.def);
-    printf(" │ lvl: %d exp: %d/%d\n", poketudiant.lvl, poketudiant.currxp, poketudiant.xpnextlvl);
-    printf(" │ Attack 1: %s type: %s\n", poketudiant.attack1, poketudiant.attack1type);
-    printf(" │ Attack 2: %s type: %s\n", poketudiant.attack2, poketudiant.attack2type);
-}
 
 int main(int argc, char const *argv[])
 {
@@ -140,6 +75,7 @@ int main(int argc, char const *argv[])
     
     isExit = false;
     isRunning = false;
+    isFight = false;
 
     pthread_create(&threadInput, NULL, thInput, NULL);
     
@@ -149,29 +85,47 @@ int main(int argc, char const *argv[])
         if(isExit = !strncmp(buffer, "exit", 4)){
             break;
         }
+        
 
         system("clear");
         printf("Team\n");
         temp = strtok(buffer, "\n");
-        sscanf(temp, "team contains %d", &nbpoke);
 
+        if(!isFight){
+            isFight = !strncmp(temp, "fight", 5);
+            if(isFight)
+            {
+                continue;
+            }
+        }
+        else
+        {
+            isFight = strncmp(temp, "endfight", 8);
+            if(!isFight)
+            {
+               pthread_create(&threadInput, NULL, thInput, NULL);
+               continue;
+            }
+        }
+        
+        sscanf(temp, "team contains %d", &nbpoke);
         for (int i = 0; i < nbpoke; i++)
         {
             temp = strtok(NULL, "\n");
-            sscanf(temp,"%s %s %d %d %d %d %d %d %d %s %s %s %s\n", 
-                poketudiant.variety, poketudiant.type, &poketudiant.lvl, &poketudiant.currxp, &poketudiant.xpnextlvl, 
-                &poketudiant.pv, &poketudiant.maxpv, &poketudiant.att, &poketudiant.def, poketudiant.attack1, poketudiant.attack1type, 
-                poketudiant.attack2, poketudiant.attack2type);
+            poketudiant = to_poketudiant(temp);
 
             printf("\nPokétudiant n°%d:\n", i);
             print_poketudiant(poketudiant);
 
         }
 
-        printf("\n%s Select pokétudiant + ", color_text(BLACK, LIGHT_GRAY, "[0...]"));
-        printf("%s Move selected pokétudiant up ", color_text(BLACK, LIGHT_GRAY, "[up]"));
-        printf("%s Move selected pokétudiant down ", color_text(BLACK, LIGHT_GRAY, "[down]"));
-        printf("%s Free pokétudiant\nExample: %s\n", color_text(BLACK, LIGHT_GRAY, "[free]"), color_text(BLACK, LIGHT_GRAY, "[0 down]"));
+        if (!isFight)
+        {
+            printf("\n%s Select pokétudiant + ", color_text(BLACK, LIGHT_GRAY, "[0...]"));
+            printf("%s Move selected pokétudiant up ", color_text(BLACK, LIGHT_GRAY, "[up]"));
+            printf("%s Move selected pokétudiant down ", color_text(BLACK, LIGHT_GRAY, "[down]"));
+            printf("%s Free pokétudiant\nExample: %s\n", color_text(BLACK, LIGHT_GRAY, "[free]"), color_text(BLACK, LIGHT_GRAY, "[0 down]"));
+        }
     }
 
     close(fd);
