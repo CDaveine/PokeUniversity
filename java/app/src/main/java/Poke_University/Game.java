@@ -42,6 +42,16 @@ public class Game {
         this.players[nb_player - 1] = player;
     }
 
+    public void removePlayer(ClientHandler player){
+        for(int i = 0; i < nb_player; i++){
+            if(players[i].id == player.id){
+                for(int j = i+1; j < nb_player; j++){
+                    players[i] = players[j];
+                }
+            }
+        }
+    }
+
     public String display() {
         return nb_player + " " + game_name + "\n";
     }

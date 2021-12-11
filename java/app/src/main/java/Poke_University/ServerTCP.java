@@ -104,7 +104,6 @@ class ServerTCP implements Closeable, Runnable {
                                 System.out.println(position_x + " " + position_y + " " + id);
                                 World world = serv.games[serv.size_games(serv.games) - 1].getMap(this);
                                 out.println(world.getMap());
-                                System.out.println(world.getMap());
                             } else {
                                 out.println("cannot create game");
                             }
@@ -120,32 +119,69 @@ class ServerTCP implements Closeable, Runnable {
                                     if (serv.games[i].getGame_name().contains(titre)) {
                                         for (int j = 0; j < serv.games[i].getNb_player(); j++) {
                                             world = serv.games[i].getMap(serv.games[i].getPlayers(j));
-                                            PrintWriter out_perso = new PrintWriter(serv.games[i].getPlayers(j).socketaccept.getOutputStream(), true);
+                                            PrintWriter out_perso = new PrintWriter(
+                                                    serv.games[i].getPlayers(j).socketaccept.getOutputStream(), true);
                                             out_perso.println(world.getMap());
-                                            System.out.println(world.getMap());
                                         }
                                     }
                                 }
                             } else {
                                 out.println("cannot join game");
                             }
-                        } else if (read.contains("map move")) {
+                        } else
+
+                        // move sur la map
+                        if (read.contains("map move")) {
                             String move = read.substring(9);
                             serv.move_to(move, this, this.game);
                             for (int i = 0; i < serv.size_games(serv.games); i++) {
                                 for (int j = 0; j < serv.games[i].getNb_player(); j++) {
                                     World world = serv.games[i].getMap(serv.games[i].getPlayers(j));
-                                    PrintWriter out_perso = new PrintWriter(serv.games[i].getPlayers(j).socketaccept.getOutputStream(), true);
+                                    PrintWriter out_perso = new PrintWriter(
+                                            serv.games[i].getPlayers(j).socketaccept.getOutputStream(), true);
                                     out_perso.println(world.getMap());
-                                    System.out.println(world.getMap());
+                                }
+                            }
+                        } else
 
+                        //chat
+                        if (read.contains("send message")) {
+                            String msg = read.substring(13);
+                            for (int i = 0; i < serv.size_games(serv.games); i++) {
+                                for (int j = 0; j < serv.games[i].getNb_player(); j++) {
+                                    if(serv.games[i].getPlayers(j).id != this.id){
+                                    String send = "rival message " + this.socketaccept.getInetAddress().getHostAddress() + " " + msg;
+                                    PrintWriter out_perso = new PrintWriter(serv.games[i].getPlayers(j).socketaccept.getOutputStream(), true);
+                                    out_perso.println(send);
+                                    }
                                 }
                             }
                         }
                     }
+
+                    // joueur parti
+                    game.removePlayer(this);
+                    game.setNb_player(game.getNb_player() - 1);
+                    if (game.getNb_player() == 0) {
+                        System.out.println("bob");
+                        serv.removeGame(game);
+                    }
+                    for (int i = 0; i < serv.size_games(serv.games); i++) {
+                        for (int j = 0; j < serv.games[i].getNb_player(); j++) {
+                            World world = serv.games[i].getMap(serv.games[i].getPlayers(j));
+                            PrintWriter out_perso = new PrintWriter(
+                                    serv.games[i].getPlayers(j).socketaccept.getOutputStream(), true);
+                            out_perso.println(world.getMap());
+                            System.out.println(world.getMap());
+
+                        }
+                    }
+                    game = null;
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
                 /*
                  * finally {
                  * try {
@@ -156,12 +192,12 @@ class ServerTCP implements Closeable, Runnable {
                  * in.close();
                  * client.close();
                  * }
-                 * }
-                 * catch (IOException e) {
+                 * } catch (IOException e) {
                  * e.printStackTrace();
                  * }
                  * }
                  */
+
             }
         }
     }

@@ -104,4 +104,20 @@ public class Server {
         }
     }
 
+    public void removeGame(Game game) {
+        if (size_games(games) == 1) {
+            games[0] = null;
+        } else {
+            for (int i = 0; i < size_games(games); i++) {
+                if (games[i].getGame_name().equals(game.getGame_name())) {
+                    System.out.println("i" + i);
+                    for (int j = i + 1; j < size_games(games); j++) {
+                        System.out.println("j" + j);
+                        games[i] = games[j];
+                    }
+                }games[size_games(games)-1] = null;
+            }
+        }
+    }
+
 }
