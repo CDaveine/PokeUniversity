@@ -446,6 +446,7 @@ void start_fight(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send,
     bufmap = NULL;
 
     // get nmber of pokédutiant opponent
+    printf("[combat] %s", buffer_recv);
     if(isrival = !strncmp(buffer_recv, "encounter new rival", 18))
     {
         sscanf(buffer_recv, "encounter new rival %d\n", &nbopp);
