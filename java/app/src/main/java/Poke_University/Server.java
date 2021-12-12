@@ -1,6 +1,8 @@
 package Poke_University;
 
 import Poke_University.ServerTCP.ClientHandler;
+import java.lang.Math;
+import java.util.Random;
 
 public class Server {
     // Game game1 = new Game(2, "bob");
@@ -88,20 +90,51 @@ public class Server {
         if (move.equals("up")) {
             if (joueur.position_x != 0) {
                 joueur.position_x--;
+                System.out.println(game.getMap(joueur).cols(game.getMap(joueur).getMap()));
+                System.out.println(joueur.position_y + " " + joueur.position_x);
+
             }
         } else if (move.equals("left")) {
             if (joueur.position_y != 0) {
                 joueur.position_y--;
+                System.out.println(game.getMap(joueur).cols(game.getMap(joueur).getMap()));
+                System.out.println(joueur.position_y + " " + joueur.position_x);
+
             }
         } else if (move.equals("down")) {
             if (joueur.position_x != game.getMap(joueur).cols(game.getMap(joueur).getMap())) {
                 joueur.position_x++;
+                System.out.println(game.getMap(joueur).cols(game.getMap(joueur).getMap()));
+                System.out.println(joueur.position_y + " " + joueur.position_x);
+
             }
         } else if (move.equals("right")) {
             if (joueur.position_y != game.getMap(joueur).rows(game.getMap(joueur).getMap())) {
                 joueur.position_y++;
+                System.out.println(game.getMap(joueur).cols(game.getMap(joueur).getMap()));
+                System.out.println(joueur.position_y + " " + joueur.position_x);
+
             }
         }
+        char[][] map = game.getMap(joueur).map_tab(game.getMap(joueur)
+                .read("/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map"));
+        // heal
+        if (map[joueur.position_x][joueur.position_y] == '+') {
+            for (int i = 0; i < joueur.dresseur.size_poke(); i++) {
+                joueur.dresseur.getPoketudiants(i).PV_current = joueur.dresseur.getPoketudiants(i).PV_max;
+            }
+        } else if (map[joueur.position_x][joueur.position_y] == '*') {
+            Random rand = new Random();
+            int rd = rand.nextInt(11);
+            if (rd <= 2) {
+                joueur.dresseur.combat_sauvage(joueur);
+            }
+        } else if (map[joueur.position_x][joueur.position_y] == '1' || map[joueur.position_x][joueur.position_y] == '2'
+                || map[joueur.position_x][joueur.position_y] == '3'
+                || map[joueur.position_x][joueur.position_y] == '4') {
+            joueur.dresseur.combat_player(joueur, map[joueur.position_x][joueur.position_y]);
+        }
+
     }
 
     public void removeGame(Game game) {
@@ -133,7 +166,7 @@ public class Server {
 
     public void team_changes(String read, ClientHandler player) {
         int place = Integer.parseInt(read.substring(12, 13));
-        String verif = read.substring(14, 19);
+        String verif = read.substring(14, 18);
         if (verif.contains("move") && player.dresseur.size_poke() >= 2) {
             String deplacement = read.substring(19);
             if (deplacement.contains("up")) {
@@ -146,7 +179,7 @@ public class Server {
                 }
             }
         } else if (verif.contains("free")) {
-            if(player.dresseur.getPoketudiants(place).getType() != Type.Teacher){
+            if (player.dresseur.getPoketudiants(place).getType() != Type.Teacher) {
                 player.dresseur.deletePoketudiant(place);
             }
         }

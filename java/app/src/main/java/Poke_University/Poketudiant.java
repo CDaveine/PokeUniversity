@@ -2,6 +2,11 @@ package Poke_University;
 
 import java.lang.Math;
 import java.util.Random;
+import java.io.*;
+import java.net.*;
+
+import Poke_University.Poketudiants.*;
+import Poke_University.ServerTCP.ClientHandler;
 
 public abstract class Poketudiant {
     protected String nom;
@@ -17,6 +22,19 @@ public abstract class Poketudiant {
 
     public Poketudiant() {
 
+    }
+
+    public enum Poketudiants {
+        Alabourre,
+        Belmention,
+        Buchafon,
+        Couchtar,
+        Ismar,
+        Nuidebou,
+        Parlfor,
+        Procrastino,
+        Promomajor,
+        Rigolamor
     }
 
     protected double rand_coef() {
@@ -132,8 +150,10 @@ public abstract class Poketudiant {
         this.level = level;
     }
 
-    public String display(){
-        return nom + " " + type + " " + level + " " + xp + " " + xp_max + " " + PV_current + " " + PV_max + " " + attack + " " + defense + " " + attacks[0].getNom() + " " + attacks[0].getType() + " " + attacks[1].getNom() + " " + attacks[1].getType();
+    public String display() {
+        return nom + " " + type + " " + level + " " + xp + " " + xp_max + " " + PV_current + " " + PV_max + " " + attack
+                + " " + defense + " " + attacks[0].getNom() + " " + attacks[0].getType() + " " + attacks[1].getNom()
+                + " " + attacks[1].getType();
     }
 
     protected Attack other_type_attack(Type type) {
@@ -160,7 +180,7 @@ public abstract class Poketudiant {
     }
 
     protected boolean is_dead() {
-        return ((this.PV_max - PV_current) == 0);
+        return ((PV_max - PV_current) == 0);
     }
 
     protected void experience(Poketudiant opponent, int nb_poketudiants) {
@@ -175,6 +195,129 @@ public abstract class Poketudiant {
     }
 
     protected void evolves() {
+
+    }
+
+    protected boolean capture(Poketudiant opponent, ClientHandler player) {
+        double chance = 2 * Math.max((1 / 2) - (opponent.PV_current / opponent.PV_max), 0);
+        double rand = Math.random();
+        if (rand <= chance && player.dresseur.size_poke() < 3) {
+            player.dresseur.setPoketudiants(player.dresseur.size_poke(), opponent);
+            return true;
+        }
+        return false;
+    }
+
+    protected boolean leave(Poketudiant player, Poketudiant opponent) {
+        int levels = player.level - opponent.level;
+        double luck;
+        switch (levels) {
+            case -3:
+                luck = 0;
+            case -2:
+                luck = 0.25;
+            case -1:
+                luck = 0.4;
+            case 0:
+                luck = 0.5;
+            case 1:
+                luck = 0.75;
+            case 2:
+                luck = 0.9;
+            case 3:
+                luck = 1;
+            default:
+                luck = 0.0;
+        }
+        double rand = Math.random() + 0.00000001;
+        if (rand <= luck) {
+            return true;
+        }
+        return false;
+    }
+
+    public void combat_sauvage(ClientHandler player) {
+        Poketudiant poke_util = player.dresseur.getPoketudiants(0);
+        try {
+            BufferedReader in = new BufferedReader(new InputStreamReader(player.socketaccept.getInputStream()));
+            PrintWriter out = new PrintWriter(player.socketaccept.getOutputStream(), true);
+            String read;
+            out.println("encouter new wild 1");
+            // genere pokemon sauvage
+            Random rand = new Random();
+            int rd = rand.nextInt(Poketudiants.values().length);
+            Poketudiants poke = Poketudiants.values()[rd];
+            Poketudiant sauvage;
+            switch (poke) {
+                case Alabourre:
+                    sauvage = new Alabourre();
+                    break;
+                case Belmention:
+                    sauvage = new Belmention();
+                    break;
+                case Buchafon:
+                    sauvage = new Buchafon();
+                    break;
+                case Couchtar:
+                    sauvage = new Couchtar();
+                    break;
+                case Ismar:
+                    sauvage = new Ismar();
+                    break;
+                case Nuidebou:
+                    sauvage = new Nuidebou();
+                    break;
+                case Parlfor:
+                    sauvage = new Parlfor();
+                    break;
+                case Procrastino:
+                    sauvage = new Procrastino();
+                    break;
+                case Promomajor:
+                    sauvage = new Promomajor();
+                    break;
+                case Rigolamor:
+                    sauvage = new Rigolamor();
+                    break;
+                default:
+                    sauvage = null;
+                    break;
+            }
+
+            while ((read = in.readLine()) != null) {
+                if (read.contains("encounter action attack1")) {
+                    attack(sauvage, poke_util.attacks[0]);
+                    if (sauvage.is_dead()) {
+                        out.println("encounter KO opponent");
+                        out.println("encounter win");
+                    } else if (poke_util.is_dead()) {
+                        out.println("encounter KO player");
+                    }
+                } else if (read.contains("encounter action attack2")) {
+                    attack(sauvage, poke_util.attacks[1]);
+                } else if (read.contains("encounter action switch")) {
+                    out.println("encounter enter poketudiant index");
+                } else if (read.contains("encounter action catch")) {
+                    if (capture(sauvage, player)) {
+                        out.println("encounter catch ok");
+                    } else {
+                        out.println("encounter catch fail");
+                    }
+                } else if (read.contains("encounter action leave")) {
+                    if (leave(poke_util, sauvage)) {
+                        out.println("encounter escape ok");
+                    } else {
+                        out.println("encounter escape fail");
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void combat_player(ClientHandler player, int id_opponent) {
 
     }
 

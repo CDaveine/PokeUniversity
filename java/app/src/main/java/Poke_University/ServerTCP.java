@@ -107,6 +107,7 @@ class ServerTCP implements Closeable, Runnable {
                                 dresseur = new Enseignant_dresseur();
                                 Alabourre ala = new Alabourre();
                                 dresseur.setPoketudiants(1, ala);
+                                ala.PV_current = ala.PV_max - 20;
                                 String team = serv.team(this);
                                 out.println(team);
                                 World world = serv.games[serv.size_games(serv.games) - 1].getMap(this);
@@ -144,6 +145,8 @@ class ServerTCP implements Closeable, Runnable {
                         if (read.contains("map move")) {
                             String move = read.substring(9);
                             serv.move_to(move, this, this.game);
+                            String team = serv.team(this);
+                            out.println(team);
                             for (int i = 0; i < serv.size_games(serv.games); i++) {
                                 for (int j = 0; j < serv.games[i].getNb_player(); j++) {
                                     World world = serv.games[i].getMap(serv.games[i].getPlayers(j));
