@@ -115,19 +115,41 @@ public class Server {
                         System.out.println("j" + j);
                         games[i] = games[j];
                     }
-                }games[size_games(games)-1] = null;
+                }
+                games[size_games(games) - 1] = null;
             }
         }
     }
 
-    public String team(ClientHandler player){
+    public String team(ClientHandler player) {
         String msg = "team contains" + player.dresseur.size_poke() + "\n";
 
-        for(int i = 0; i < player.dresseur.size_poke(); i++){
+        for (int i = 0; i < player.dresseur.size_poke(); i++) {
             msg += player.dresseur.getPoketudiants(i).display() + "\n";
         }
 
         return msg;
+    }
+
+    public void team_changes(String read, ClientHandler player) {
+        int place = Integer.parseInt(read.substring(12, 13));
+        String verif = read.substring(14, 19);
+        if (verif.contains("move") && player.dresseur.size_poke() >= 2) {
+            String deplacement = read.substring(19);
+            if (deplacement.contains("up")) {
+                if (place > 0) {
+                    player.dresseur.switchPoketudiant(place, place - 1);
+                }
+            } else if (deplacement.contains("down")) {
+                if (place < player.dresseur.size_poke()) {
+                    player.dresseur.switchPoketudiant(place, place + 1);
+                }
+            }
+        } else if (verif.contains("free")) {
+            if(player.dresseur.getPoketudiants(place).getType() != Type.Teacher){
+                player.dresseur.deletePoketudiant(place);
+            }
+        }
     }
 
 }

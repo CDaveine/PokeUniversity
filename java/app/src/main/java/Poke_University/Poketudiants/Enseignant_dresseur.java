@@ -9,8 +9,25 @@ public class Enseignant_dresseur extends Poketudiant {
         return poketudiants[n];
     }
 
-    public void setPoketudiants(Poketudiant[] poketudiants) {
-        this.poketudiants = poketudiants;
+    public void setPoketudiants(int n, Poketudiant poke) {
+        poketudiants[n] = poke;
+    }
+
+    public void switchPoketudiant(int n1, int n2) {
+        Poketudiant poke1 = poketudiants[n1];
+        poketudiants[n1] = poketudiants[n2];
+        poketudiants[n2] = poke1;
+    }
+
+    public void deletePoketudiant(int n){
+        if(n == size_poke()){
+            poketudiants[n] = null;
+        } else
+        if(n < size_poke()){
+            for(int i = n; i <size_poke()-1; i++){
+                poketudiants[i] = poketudiants[i+1];
+            } poketudiants[size_poke()-1] = null;
+        }
     }
 
     public Enseignant_dresseur() {

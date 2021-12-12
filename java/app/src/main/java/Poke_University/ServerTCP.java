@@ -3,6 +3,7 @@ package Poke_University;
 import java.io.*;
 import java.net.*;
 
+import Poke_University.Poketudiants.Alabourre;
 import Poke_University.Poketudiants.Enseignant_dresseur;
 
 // Server class
@@ -104,6 +105,8 @@ class ServerTCP implements Closeable, Runnable {
                             if (serv.creation_game(read, this)) {
                                 out.println("game created");
                                 dresseur = new Enseignant_dresseur();
+                                Alabourre ala = new Alabourre();
+                                dresseur.setPoketudiants(1, ala);
                                 String team = serv.team(this);
                                 out.println(team);
                                 World world = serv.games[serv.size_games(serv.games) - 1].getMap(this);
@@ -163,10 +166,17 @@ class ServerTCP implements Closeable, Runnable {
                                     }
                                 }
                             }
+                        }else
+
+                        //reagencement team
+                        if(read.contains("poketudiant")){
+                            serv.team_changes(read, this);
+                            String team = serv.team(this);
+                            out.println(team);
                         }
                     }
 
-                    // joueur parti
+                    // joueur part
                     game.removePlayer(this);
                     game.setNb_player(game.getNb_player() - 1);
                     if (game.getNb_player() == 0) {
