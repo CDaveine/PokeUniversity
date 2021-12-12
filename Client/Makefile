@@ -49,7 +49,5 @@ obj/poketudiant.o: src/poketudiant.c
 	gcc -c src/poketudiant.c -o obj/poketudiant.o
 
 clean:
-	@rm build/client
-	@rm build/team
-	@rm build/tchat
+	@rm -rf build
 	@rm -rf obj

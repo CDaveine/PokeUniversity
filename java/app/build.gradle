@@ -28,3 +28,7 @@ application {
     // Define the main class for the application.
     mainClass = 'Poke_University.App'
 }
+
+run {
+    standardInput = System.in
+}
