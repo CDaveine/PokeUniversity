@@ -4,6 +4,9 @@
 
 #include "color.h"
 
+/**
+ * get the color of foreground color 
+ */
 char * code_foreground(t_color color){
     char *res;
     if (color < DARK_GRAY){
@@ -18,6 +21,9 @@ char * code_foreground(t_color color){
     free(res);
 }
 
+/**
+ * get the color of background color 
+ */
 char * code_background(t_color color){
     char *res;
     if (color < DARK_GRAY){
@@ -32,6 +38,9 @@ char * code_background(t_color color){
     free(res);
 }
 
+/**
+ * color the txt m
+ */
 char * color_text(t_color foregroud, t_color backgroud, char *m){
    int size = strlen(m) + (foregroud < DARK_GRAY?2:4) + (backgroud < DARK_GRAY?2:4)+10;
    char *res = (char *) malloc(size*sizeof(char));

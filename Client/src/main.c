@@ -24,6 +24,10 @@ int main(int argc, char const *argv[])
     char buffer_recv[SIZE];
     char **lparty, *temp;
 
+    system("clear");
+    print_title();
+    get_msg("press enter to start", buffer_send);
+    
     for (;;)
     {
         clt->client_send_broadcast(clt, "looking for poketudiant servers\n");
@@ -126,8 +130,9 @@ int main(int argc, char const *argv[])
         else{
             do{
                 system("clear");
+                print_title();
                 printf("No server found\n");
-                printf("%s ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
+                printf("\n%s ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
                 get_msg(color_text(BLACK, LIGHT_GRAY, "[refresh]"), buffer_send);
             }while (strncmp(buffer_send, "exit", 4) && strncmp(buffer_send, "refresh", 7));
 

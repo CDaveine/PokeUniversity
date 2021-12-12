@@ -1,48 +1,55 @@
-client: main.o clientbrc.o clientTCP.o game.o poketudiant.o error.o color.o
-	gcc -g -o client main.o clientbrc.o clientTCP.o game.o poketudiant.o error.o color.o -pthread
+all: build/client build/team build/tchat
 
-team: team.o color.o poketudiant.o
-	gcc -g -o team team.o color.o poketudiant.o -pthread
+build/client: obj/main.o obj/clientbrc.o obj/clientTCP.o obj/game.o obj/poketudiant.o obj/error.o obj/color.o
+	@mkdir -p build
+	gcc -g -o build/client obj/main.o obj/clientbrc.o obj/clientTCP.o obj/game.o obj/poketudiant.o obj/error.o obj/color.o -pthread
 
-tchat: tchat.o
-	gcc -g -o tchat tchat.o -pthread
+build/team: obj/team.o obj/color.o obj/poketudiant.o
+	@mkdir -p build
+	gcc -g -o build/team obj/team.o obj/color.o obj/poketudiant.o -pthread
 
-obj/main.o: main.c
+build/tchat: obj/tchat.o
+	@mkdir -p build
+	gcc -g -o build/tchat obj/tchat.o -pthread
+
+obj/main.o: src/main.c
 	@mkdir -p obj
-	gcc -c main.c -o obj/main.o
+	gcc -c src/main.c -o obj/main.o
 
-obj/clientbrc.o: clientbrc.c
+obj/clientbrc.o: src/clientbrc.c
 	@mkdir -p obj
-	gcc -c clientbrc.c -o obj/clientbrc.o
+	gcc -c src/clientbrc.c -o obj/clientbrc.o
 
-obj/clientTCP.o: clientTCP.c
+obj/clientTCP.o: src/clientTCP.c
 	@mkdir -p obj
-	gcc -c clientTCP.c -o obj/clientTCP.o
+	gcc -c src/clientTCP.c -o obj/clientTCP.o
 
-obj/game.o: game.c
+obj/game.o: src/game.c
 	@mkdir -p obj
-	gcc -c game.c -o obj/game.o
+	gcc -c src/game.c -o obj/game.o
 
-obj/error.o: error.c
+obj/error.o: src/error.c
 	@mkdir -p obj
-	gcc -c error.c -o obj/error.o
+	gcc -c src/error.c -o obj/error.o
 
-obj/color.o: color.c
+obj/color.o: src/color.c
 	@mkdir -p obj
-	gcc -c color.c -o obj/color.o
+	gcc -c src/color.c -o obj/color.o
 
-obj/team.o: team.c
+obj/team.o: src/team.c
 	@mkdir -p obj
-	gcc -c team.c -o obj/team.o
+	gcc -c src/team.c -o obj/team.o
 
-obj/tchat.o: tchat.c
+obj/tchat.o: src/tchat.c
 	@mkdir -p obj
-	gcc -c tchat.c -o obj/tchat.o
+	gcc -c src/tchat.c -o obj/tchat.o
 
-obj/poketudiant.o: poketudiant.c
+obj/poketudiant.o: src/poketudiant.c
 	@mkdir -p obj
-	gcc -c poketudiant.c -o obj/poketudiant.o
+	gcc -c src/poketudiant.c -o obj/poketudiant.o
 
 clean:
-	@rm client
+	@rm build/client
+	@rm build/team
+	@rm build/tchat
 	@rm -rf obj

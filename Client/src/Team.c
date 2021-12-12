@@ -16,8 +16,11 @@ int nbpoke;
 bool isExit;
 bool isFight;
 
+/**
+ * get the player action on the team and send it to the client
+ */
 void *thInput(void *nothing){
-    char buf[SIZE], move[4];
+    char buf[SIZE], move[SIZE], temp[SIZE];
     int fd, select, size;
     
     if((fd = open("OUT_Team.fifo", O_WRONLY)) == -1){
@@ -25,9 +28,9 @@ void *thInput(void *nothing){
         exit(1);
     }
     
-    while (!isExit && !isFight)
+    while (!isExit)
     {
-        if(!nbpoke)
+        if(nbpoke<2 || isFight)
         {
             continue;
         }
@@ -35,30 +38,36 @@ void *thInput(void *nothing){
         do{
             fgets(buf, SIZE, stdin);
             sscanf(buf, "%d %s\n", &select, move);
-        }while((select < 0 || select >= nbpoke) || (strncmp(move, "up", 2) && strncmp(move, "down", 4) && strncmp(move, "free", 4)));
+        }while(((select < 1 || select >= nbpoke) || strncmp(move, "up", 2)) && ((select < 0 || select >= nbpoke-1) || strncmp(move, "down", 4)) && ((select < 0 || select >= nbpoke) || strncmp(move, "free", 4)));
         
         if (isFight)
         {
             continue;
         }
-        
+
+        strcpy(buf, "poketudiant ");
+        sprintf(temp, "%d", select);
+        strncat(buf, temp, sizeof(temp));
+
         if(!strncmp(move, "up", 2) || !strncmp(move, "down", 4))
         {
-            size = sprintf(buf, "poketudiant %d move %s\n", select, move);
+            strcat(buf, " move ");
         }
         else
         {
-            size = sprintf(buf, "poketudiant %d %s\n", select, move);
+            strcat(buf, " ");
         }
 
-        buf[size] = '\0';
+        strncat(buf, move, strlen(move));
+        size = strlen(buf);
+        buf[size] = '\n';
+        buf[size+1] = '\0';
         write(fd, buf, size+1);
     }
     
     close(fd);
     return NULL;
 }
-
 
 int main(int argc, char const *argv[])
 {
@@ -73,6 +82,7 @@ int main(int argc, char const *argv[])
         exit(1);
     }
     
+    nbpoke = 0;
     isExit = false;
     isRunning = false;
     isFight = false;
@@ -86,9 +96,6 @@ int main(int argc, char const *argv[])
             break;
         }
         
-
-        system("clear");
-        printf("Team\n");
         temp = strtok(buffer, "\n");
 
         if(!isFight){
@@ -101,13 +108,18 @@ int main(int argc, char const *argv[])
         else
         {
             isFight = strncmp(temp, "endfight", 8);
-            if(!isFight)
+            if(!isFight && nbpoke > 1)
             {
-               pthread_create(&threadInput, NULL, thInput, NULL);
+                printf("\n%s Select pokétudiant + ", color_text(BLACK, LIGHT_GRAY, "[0...]"));
+                printf("%s Move selected pokétudiant up ", color_text(BLACK, LIGHT_GRAY, "[up]"));
+                printf("%s Move selected pokétudiant down ", color_text(BLACK, LIGHT_GRAY, "[down]"));
+                printf("%s Free pokétudiant\nExample: %s\n", color_text(BLACK, LIGHT_GRAY, "[free]"), color_text(BLACK, LIGHT_GRAY, "[0 down]"));
                continue;
             }
         }
-        
+
+        system("clear");
+        printf("Team\n");
         sscanf(temp, "team contains %d", &nbpoke);
         for (int i = 0; i < nbpoke; i++)
         {
@@ -119,7 +131,7 @@ int main(int argc, char const *argv[])
 
         }
 
-        if (!isFight)
+        if (!isFight && nbpoke > 1)
         {
             printf("\n%s Select pokétudiant + ", color_text(BLACK, LIGHT_GRAY, "[0...]"));
             printf("%s Move selected pokétudiant up ", color_text(BLACK, LIGHT_GRAY, "[up]"));

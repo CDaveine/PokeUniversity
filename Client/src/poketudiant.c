@@ -3,6 +3,9 @@
 
 #include "poketudiant.h"
 
+/**
+ * get the equivalent emoji of a poketudiant variety
+ */
 char * get_pokemoji(t_poketudiant poketudiant)
 {
     if(!strncmp(poketudiant.variety, "Parlfor", 7))
@@ -17,7 +20,7 @@ char * get_pokemoji(t_poketudiant poketudiant)
     {
         return "😂";
     }
-    else if(!strncmp(poketudiant.variety, "Proscratino", 11))
+    else if(!strncmp(poketudiant.variety, "Procrastino", 11))
     {
         return "🥱";
     }
@@ -55,6 +58,9 @@ char * get_pokemoji(t_poketudiant poketudiant)
     }
 }
 
+/** 
+ * print poketudiant stats
+ */
 void print_poketudiant(t_poketudiant poketudiant)
 {
     printf(" │ %s Variety: %s Type: %s\n", get_pokemoji(poketudiant), poketudiant.variety, poketudiant.type);
@@ -65,6 +71,9 @@ void print_poketudiant(t_poketudiant poketudiant)
     printf(" │ Attack 2: %s type: %s\n", poketudiant.attack2, poketudiant.attack2type);
 }
 
+/**
+ * poketudiant description to poketudiant
+ */
 t_poketudiant to_poketudiant(char *desc)
 {
     t_poketudiant poketudiant;

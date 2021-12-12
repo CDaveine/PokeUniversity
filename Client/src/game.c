@@ -8,7 +8,6 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <sys/select.h>
-#include <wait.h>
 
 #include "clientTCP.h"
 #include "poketudiant.h"
@@ -17,16 +16,50 @@
 // private global var for threads
 bool isExit;
 bool isRunning;
+// player pos
+int x, y, nbrow, nbcol;
 
+/**
+ * get player input
+ */
 void get_msg(const char *need, char *msg){
     printf("%s \n", need);
     fgets(msg, 500, stdin);
 }
 
+/**
+ * print game title
+ */
+void print_title()
+{
+    printf("\n  %s\n", color_text(GREEN, BLACK,
+    "                            ███╗                                                                                 "));
+    printf("  %s\n", color_text(GREEN, BLACK,
+    "                          ███╔═╝                                                                                 "));
+    printf("  %s\n", color_text(GREEN, BLACK,
+    "                          ╚══╝                                                                                   "));
+    printf("  %s\n", color_text(GREEN, BLACK,
+    "██████╗  ██████╗ ██╗  ██╗███████╗    ██╗   ██╗███╗   ██╗██╗██╗   ██╗███████╗██████╗ ███████╗██╗████████╗██╗   ██╗"));
+    printf("  %s\n", color_text(GREEN, BLACK,
+    "██╔══██╗██╔═══██╗██║ ██╔╝██╔════╝    ██║   ██║████╗  ██║██║██║   ██║██╔════╝██╔══██╗██╔════╝██║╚══██╔══╝╚██╗ ██╔╝"));
+    printf("  %s\n", color_text(GREEN, BLACK,
+    "██████╔╝██║   ██║█████╔╝ █████╗█████╗██║   ██║██╔██╗ ██║██║██║   ██║█████╗  ██████╔╝███████╗██║   ██║    ╚████╔╝ "));
+    printf("  %s\n", color_text(GREEN, BLACK,
+    "██╔═══╝ ██║   ██║██╔═██╗ ██╔══╝╚════╝██║   ██║██║╚██╗██║██║╚██╗ ██╔╝██╔══╝  ██╔══██╗╚════██║██║   ██║     ╚██╔╝  "));
+    printf("  %s\n", color_text(GREEN, BLACK,
+    "██║     ╚██████╔╝██║  ██╗███████╗    ╚██████╔╝██║ ╚████║██║ ╚████╔╝ ███████╗██║  ██║███████║██║   ██║      ██║   "));
+    printf("  %s\n\n", color_text(GREEN, BLACK,
+    "╚═╝      ╚═════╝ ╚═╝  ╚═╝╚══════╝     ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   "));
+}
+
+/**
+ * show the server list and let the player select one
+ */
 void prompt_server_list(struct sockaddr_in **servers, int nbserv, char *buffer_send){
     int iserv =-1;
     do{
         system("clear");
+        print_title();
         for (int i = 0; i < nbserv; i++)
         {
             printf("Server %d: %s\n", i, inet_ntoa(servers[i]->sin_addr));
@@ -44,6 +77,9 @@ void prompt_server_list(struct sockaddr_in **servers, int nbserv, char *buffer_s
     }while(strncmp(buffer_send, "exit", 4) && strncmp(buffer_send, "refresh", 7) && (iserv < 0 || iserv >= nbserv));
 }
 
+/**
+ * demand to the server and show the party list
+ */
 char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_recv, char *buffer_send, int bufsize){
     int iparty, ibuff, nbplayer, size;
     char *temp, pname[25], **lparty;
@@ -51,6 +87,7 @@ char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_r
     lparty = NULL;
     do{
         system("clear");
+        print_title();
         cltTCP->client_send_tcp(cltTCP, "require game list\n");
         
         ibuff = 0;
@@ -118,9 +155,12 @@ char ** prompt_party_list(struct clientTCP *cltTCP, int *nbparty, char *buffer_r
     return lparty;
 }
 
-void show_player(char **map, int nbrow, int nbcol){
+/**
+ * show only where the plaer is
+ */
+void show_player(char **map){
     bool isfound;
-    int x, y, xMax, xMin, yMax, yMin;
+    int xMax, xMin, yMax, yMin;
     for (int i = 0; i < nbrow; i++)
     {
         for (int j = 0; j < nbcol; j++)
@@ -179,6 +219,9 @@ void show_player(char **map, int nbrow, int nbcol){
 
     for (int i = yMin; i < yMax; i++)
     {
+        // center the map
+        printf("%39s", " ");
+        
         for (int j = xMin; j < xMax; j++)
         {
             switch (map[i][j])
@@ -208,7 +251,10 @@ void show_player(char **map, int nbrow, int nbcol){
     }
 }
 
-void update_map(const char *bufmap, int nbrow, int nbcol){
+/**
+ * update the world map and show it
+ */
+void update_map(const char *bufmap){
     char *temp, **map;
     
     temp = (char *) malloc((nbrow * (nbcol+1)+1) * sizeof(char));
@@ -227,7 +273,8 @@ void update_map(const char *bufmap, int nbrow, int nbcol){
         }
     }
     system("clear");
-    show_player(map, nbrow, nbcol);
+    print_title();
+    show_player(map);
     
     printf("\n%s Return to server list ", color_text(BLACK, LIGHT_GRAY, "[exit]"));
     printf("%s Go up ", color_text(BLACK, LIGHT_GRAY, "[z]"));
@@ -239,6 +286,9 @@ void update_map(const char *bufmap, int nbrow, int nbcol){
     free(map);
 }
 
+/**
+ * get the movement of the player and send it to the sever
+ */ 
 void *thsend_move(void *clt){
     ClientTCP cltTCP = (struct clientTCP *)clt;
     char buffer_send[500];
@@ -251,19 +301,51 @@ void *thsend_move(void *clt){
         switch (buffer_send[0])
         {
         case 'z':
-            cltTCP->client_send_tcp(cltTCP, "map move up\n");
+            if(y-1 >= 0)
+            {
+                cltTCP->client_send_tcp(cltTCP, "map move up\n");
+            }
+            else
+            {
+                printf("can't go here\n");
+                thsend_move(clt);
+            }
             break;
 
         case 's':
-            cltTCP->client_send_tcp(cltTCP, "map move down\n");
+            if(y+1 < nbrow)
+            {
+                cltTCP->client_send_tcp(cltTCP, "map move down\n");
+            }
+            else
+            {
+                printf("can't go here\n");
+                thsend_move(clt);
+            }
             break;
 
         case 'q':
-            cltTCP->client_send_tcp(cltTCP, "map move left\n");
+            if(x-1 >= 0)
+            {
+                cltTCP->client_send_tcp(cltTCP, "map move left\n");
+            }
+            else
+            {
+                printf("can't go here\n");
+                thsend_move(clt);
+            }
             break;
 
         case 'd':
-            cltTCP->client_send_tcp(cltTCP, "map move right\n");
+            if(x+1 < nbcol)
+            {
+                cltTCP->client_send_tcp(cltTCP, "map move right\n");
+            }
+            else
+            {
+                printf("can't go here\n");
+                thsend_move(clt);
+            }
             break;
 
         default:
@@ -276,21 +358,37 @@ void *thsend_move(void *clt){
     return NULL;
 }
 
+/**
+ * get the player actions on his team by team interface and send them to the server
+ */
 void *thout_Team(void *clt){
     char buf[500];
-    int fd, size;
+    int fd, size, ibuff;
     ClientTCP cltTcp;
 
     fd = open("OUT_Team.fifo", O_RDONLY);
     cltTcp = (struct clientTCP *) clt;
-    while(size = read(fd, buf, 500))
+
+    for (;;)
     {
-        if (!strncmp(buf, "exit", 4))
+        ibuff = 0;
+        do
+        {
+            if(!(size = read(fd, &buf[ibuff], sizeof(char))))
+            {
+                break;
+            }
+
+            ibuff++;
+        }while (buf[ibuff-1]!='\n');
+
+        if(!size)
         {
             break;
         }
 
-        buf[size] = '\0';
+        buf[ibuff]='\0';
+
         cltTcp->client_send_tcp(cltTcp, buf);
     }
 
@@ -298,16 +396,36 @@ void *thout_Team(void *clt){
     return NULL;
 }
 
+/**
+ * thread to get all the player message give in tchat interface to send them to the server
+*/
 void *thout_Tchat(void *clt){
     char buf[500];
-    int fd, size;
+    int fd, size, ibuff;
     ClientTCP cltTcp;
 
     fd = open("OUT_Tchat.fifo", O_RDONLY);
     cltTcp = (struct clientTCP *) clt;
-    while(size = read(fd, buf, 500))
+
+    for (;;)
     {
-        buf[size] = '\0';
+        ibuff = 0;
+        do
+        {
+            if(!(size = read(fd, &buf[ibuff], sizeof(char))))
+            {
+                break;
+            }
+
+            ibuff++;
+        }while (buf[ibuff-1]!='\n');
+
+        if(!size)
+        {
+            break;
+        }
+        buf[ibuff]='\0';
+
         cltTcp->client_send_tcp(cltTcp, buf);
     }
 
@@ -315,29 +433,31 @@ void *thout_Tchat(void *clt){
     return NULL;
 }
 
-void start_fight(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send, int bufsize, char *bufmap, int *nbrow, int *nbcol, int fifoTeam, int fifoTchat){
+/**
+ * manage manage the communication between the server, the map update, start fight and the tchat and team interfaces in the fight
+ */
+void start_fight(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send, int bufsize, char *bufmap, int *nbpoke, int fifoTeam, int fifoTchat){
     bool isrival;
-    int ibuff, ipoke, pokesel, nbpoke, nbopp, size;
+    int ibuff, ipoke, pokesel, nbopp, size;
     char msg[bufsize], temp;
     t_poketudiant poke, opp;
     float pokeLife, oppLife;
 
     bufmap = NULL;
-    nbpoke = 1;
 
-    system("clear");
-
-    if(isrival = strncmp(buffer_recv, "encounter new wild", 18))
+    // get nmber of pokédutiant opponent
+    if(isrival = !strncmp(buffer_recv, "encounter new rival", 18))
     {
-        sscanf(buffer_recv, "encounter new wild %d\n", &nbopp);
+        sscanf(buffer_recv, "encounter new rival %d\n", &nbopp);
     }
     else
     {
-        sscanf(buffer_recv, "encounter new rival %d\n", &nbopp);
+        sscanf(buffer_recv, "encounter new wild %d\n", &nbopp);
     }
 
     do
     {
+        // read socket line
         ibuff = 0;
         do
         {
@@ -345,19 +465,20 @@ void start_fight(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send,
             ibuff++;
         }while(buffer_recv[ibuff-1]!='\n');
         buffer_recv[ibuff]='\0';
-        printf("%s\n", buffer_recv);
 
         if(!strncmp(buffer_recv, "map", 3))
         {
-            sscanf(buffer_recv, "map %d %d\n", nbrow, nbcol);
+            // get the map to update it at the end of the match
+            sscanf(buffer_recv, "map %d %d\n", &nbrow, &nbcol);
             free(bufmap);
-            bufmap = (char *) malloc((*nbrow * (*nbcol+1)+1) * sizeof(char));
-            size = read(cltTCP->sock, bufmap, *nbrow * (*nbcol+1));
+            bufmap = (char *) malloc((nbrow * (nbcol+1)+1) * sizeof(char));
+            size = read(cltTCP->sock, bufmap, nbrow * (nbcol+1));
             bufmap[size] = '\0';
         }
         else if(!strncmp(buffer_recv, "team contains", 13))
         {
-            sscanf(buffer_recv, "team contains %d\n", &nbpoke);
+            // update team interface information
+            sscanf(buffer_recv, "team contains %d\n", nbpoke);
             ipoke = 0;
             do
             {
@@ -367,53 +488,76 @@ void start_fight(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send,
                     ipoke++;
                 }
                 ibuff++;
-            }while (ipoke<nbpoke);
+            }while (ipoke < *nbpoke);
 
             buffer_recv[ibuff] = '\0';
             write(fifoTeam, buffer_recv, strlen(buffer_recv));
         }
         else if(!strncmp(buffer_recv, "rival message", 13))
         {
+            // send message to tchat interface
             write(fifoTchat, buffer_recv, strlen(buffer_recv));
         }
         else if(!strncmp(buffer_recv, "encounter poketudiant player", 28))
         {
+            // show the player fighter status
+            system("clear");
+            print_title();
             sscanf(buffer_recv, "encounter poketudiant player %s %d %f %s %s %s %s\n", 
             poke.variety, &poke.lvl, &pokeLife, poke.attack1, poke.attack1type, poke.attack2, poke.attack2type);
 
-            printf("🧒 Your Pokétudiant:\n");
-            printf(" │ %s %s lvl: %d  ❤️  %f\n", get_pokemoji(poke), poke.variety, poke.lvl, pokeLife);
+            printf("\n 🧒 Your Pokétudiant: ");
+            for (int i = 0; i < *nbpoke; i++)
+            {
+                printf("🎒 ");
+            }
+
+            printf("\n │ %s %s lvl: %d  ❤️  %f\n", get_pokemoji(poke), poke.variety, poke.lvl, pokeLife);
             printf(" │ attack 1: %s type: %s\n", poke.attack1, poke.attack1type);
-            printf(" │ attack 2: %s type: %s\n\n", poke.attack2, poke.attack2type);
+            printf(" │ attack 2: %s type: %s\n", poke.attack2, poke.attack2type);
         }
         else if(!strncmp(buffer_recv, "encounter poketudiant opponent", 30))
         {
-            sscanf(buffer_recv, "encounter poketudiant opponent %s %d %f\n", 
-            opp.variety, &opp.lvl, &oppLife);
+            // show the opponent fighter status
+            sscanf(buffer_recv, "encounter poketudiant opponent %s %d %f\n", opp.variety, &opp.lvl, &oppLife);
 
-            printf("👱 Opponent Pokétudiant:\n");
-            printf(" │ %s %s lvl: %d  ❤️  %f\n", get_pokemoji(opp), opp.variety, opp.lvl, oppLife);
+            if(isrival)
+            {
+                printf("\n 👱 Opponent Pokétudiant: ");
+            }
+            else
+            {
+                printf("\n 🥦 Wild Pokétudiant: ");
+            }
+
+            for (int i = 0; i < nbopp; i++)
+            {
+                printf("🎒 ");
+            }
+            
+            printf("\n │ %s %s lvl: %d  ❤️  %f\n", get_pokemoji(opp), opp.variety, opp.lvl, oppLife);
         }
         else if(!strncmp(buffer_recv, "encounter enter action", 22))
         {
+            // demand player action
             printf("\n%s Attack %s ", color_text(BLACK, LIGHT_GRAY, "[attack1]"), poke.attack1);
             printf("%s Attack %s ", color_text(BLACK, LIGHT_GRAY, "[attack2]"), poke.attack2);
 
-            if(nbpoke > 1)
+            if(*nbpoke > 1)
             {
                 printf("%s Switch your pokemon ", color_text(BLACK, LIGHT_GRAY, "[switch]"));
             }
 
             if(!isrival){
-                printf("%s Try to catch %s %s ", color_text(BLACK, LIGHT_GRAY, "[catch]"), get_pokemoji(opp), opp.variety);
+                printf("\n%s Try to catch %s %s ", color_text(BLACK, LIGHT_GRAY, "[catch]"), get_pokemoji(opp), opp.variety);
                 printf("%s Try to escape the fight\n ", color_text(WHITE, LIGHT_BLUE, "[leave]"));
             }
             printf("\n");
+
             do
             {
                 fgets(msg, bufsize, stdin);
-                printf("%s\n", msg);
-            }while(strncmp(msg, "attack1", 7) && strncmp(msg, "attack2", 7) && (isrival || (strncmp(msg, "catch", 5) &&  strncmp(msg, "leave", 5))) && (nbpoke==1 || strncmp(msg, "switch", 6)));
+            }while(strncmp(msg, "attack1", 7) && strncmp(msg, "attack2", 7) && (isrival || (strncmp(msg, "catch", 5) &&  strncmp(msg, "leave", 5))) && (*nbpoke == 1 || strncmp(msg, "switch", 6)));
 
             strcpy(buffer_send, "encounter action ");
             strncat(buffer_send, msg, strlen(msg));
@@ -421,6 +565,7 @@ void start_fight(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send,
         }
         else if(!strncmp(buffer_recv, "encounter enter poketudiant index", 33))
         {
+            // demand poketudiant switch 
             printf("\n%s Choose the pokétudiant to switch\n", color_text(LIGHT_GRAY, BLACK, "[0...]"));
             do
             {
@@ -429,12 +574,16 @@ void start_fight(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send,
                 if(!pokesel && msg[0] != '0'){
                     pokesel = -1;
                 }
-            }while(pokesel < 0 && pokesel >= nbpoke);
-            sprintf(msg,"%d\n", pokesel);
+            }while(pokesel < 0 && pokesel >= *nbpoke);
+            sprintf(msg, "%d\n", pokesel);
 
-            strcpy(buffer_send, "encounter action ");
+            strcpy(buffer_send, "encounter poketudiant index ");
             strcat(buffer_send, msg);
             cltTCP->client_send_tcp(cltTCP, buffer_send);
+        }
+        else if(!strncmp(buffer_recv, "encounter catch fail", 20))
+        {
+            printf("%s %s won't enter in your schoolbag\n", get_pokemoji(opp), opp.variety);
         }
         else if(!strncmp(buffer_recv, "encounter escape fail", 21))
         {
@@ -442,14 +591,15 @@ void start_fight(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send,
         }
         else if(!strncmp(buffer_recv, "encounter KO opponent", 21))
         {
-            printf("\n Opponent: %s %s ☠️", get_pokemoji(opp), opp.variety);
+            printf("\n Opponent: %s %s ☠️\n", get_pokemoji(opp), opp.variety);
         }
         else if(!strncmp(buffer_recv, "encounter KO player", 19))
         {
-            printf("\n You: %s %s ☠️", get_pokemoji(poke), poke.variety);
+            printf("\n You: %s %s ☠️\n", get_pokemoji(poke), poke.variety);
         }
-    }while(strncmp(buffer_recv, "encounter win", 13) && strncmp(buffer_recv, "encounter lose", 14) && strncmp(buffer_recv, "encounter escape ok", 19));
+    }while(strncmp(buffer_recv, "encounter win", 13) && strncmp(buffer_recv, "encounter lose", 14) && strncmp(buffer_recv, "encounter escape ok", 19) && strncmp(buffer_recv, "encounter catch ok", 18));
 
+    // victory screen
     if(!strncmp(buffer_recv, "encounter win", 13))
     {
         printf("\n🎉 You win 🎉\n");
@@ -458,15 +608,22 @@ void start_fight(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send,
     {
         printf("\n😥 You lose 😥\n");
     }
+    else if(!strncmp(buffer_recv, "encounter catch ok", 18))
+    {
+        printf("\n 🎉 %s %s join your team 🎉\n", get_pokemoji(opp), opp.variety);
+    }
     else
     {
-        printf("\n %s %s join your team 🎉\n", get_pokemoji(opp), opp.variety);
+        printf("\n 🏃 You succesfully escape %s %s  \n", get_pokemoji(opp), opp.variety);
     }
     get_msg("press any key to continue", msg);
 }
 
+/**
+ * manage the communication between the server, the map update, start fight and the tchat and team interfaces 
+ */
 void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv, int bufsize){
-    int ibuff, fifoTeam, fifoTchat, nbrow, nbcol, nbpoke, ipoke, size;
+    int ibuff, fifoTeam, fifoTchat, nbpoke, ipoke, size;
     char *bufmap;
     t_poketudiant poke;
     pid_t pidTeam, pidTchat;
@@ -477,6 +634,7 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
     isRunning = false;
     isExit = false;
 
+    // create communication pipe for tchat and tean
     unlink("IN_Team.fifo");
     unlink("OUT_Team.fifo");
     unlink("IN_Tchat.fifo");
@@ -506,12 +664,14 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
         exit(1);
     }
 
+    // launch team interface
     if((pidTeam = system("gnome-terminal -- ./team"))==-1)
     {
         perror("couldn't launch team");
         exit(1);
     }
 
+    // launch tchat interface
     if((pidTchat = system("gnome-terminal -- ./tchat"))==-1)
     {
         perror("couldn't launch tchat");
@@ -526,6 +686,7 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
 
     do
     {
+        // select() var initialization
         tv.tv_sec = 0;
         tv.tv_usec = 0;
         FD_ZERO(&rfds);
@@ -533,6 +694,7 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
 
         if(select(cltTCP->sock+1, &rfds, NULL, NULL, &tv))
         {
+            // read on line of the tcp socket
             ibuff = 0;
             do
             {
@@ -542,12 +704,15 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
             buffer_recv[ibuff]='\0';
 
             if(!strncmp(buffer_recv, "map", 3)){
+                // get map and print it
                 sscanf(buffer_recv, "map %d %d\n", &nbrow, &nbcol);
                 
                 bufmap = (char *) malloc((nbrow * (nbcol+1)+1) * sizeof(char));
                 size = read(cltTCP->sock, bufmap, nbrow * (nbcol+1));
                 bufmap[size] = '\0';
-                update_map(bufmap, nbrow, nbcol);
+                update_map(bufmap);
+
+                // start thsend_move to get player movement
                 if(!isRunning){
                     isRunning = true;
                     pthread_create(&threadMap, NULL, thsend_move, (void *) cltTCP);
@@ -555,6 +720,7 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
             }
             else if(!strncmp(buffer_recv, "team contains", 13))
             {
+                // get the player team
                 sscanf(buffer_recv, "team contains %d\n", &nbpoke);
                 ipoke = 0;
 
@@ -567,55 +733,104 @@ void launch_game(struct clientTCP *cltTCP, char *buffer_send, char *buffer_recv,
                     }
                     ibuff++;
                 }while (ipoke<nbpoke);
-
                 buffer_recv[ibuff] = '\0';
+
+                // send(the team to the team interface)
                 write(fifoTeam, buffer_recv, strlen(buffer_recv));
             }
             else if(!strncmp(buffer_recv, "rival message", 13))
             {
+                // send the message to the tchat interface
                 write(fifoTchat, buffer_recv, strlen(buffer_recv));
             }
             else if(!strncmp(buffer_recv, "encounter new", 13))
             {
+                // prevent the team interface that fight start
                 write(fifoTeam, "fight\n", 6);
+
+                // stop to get movement of player
                 pthread_cancel(threadMap);
                 isRunning = false;
-                start_fight(cltTCP, buffer_recv, buffer_send, bufsize, bufmap, &nbrow, &nbcol, fifoTeam, fifoTchat);
+
+                // start the fight
+                start_fight(cltTCP, buffer_recv, buffer_send, bufsize, bufmap, &nbpoke, fifoTeam, fifoTchat);
+
+                // signal the team interface that the fight stop
                 write(fifoTeam, "endfight\n", 9);
-                update_map(bufmap, nbrow, nbcol);
+
+                // update the map and restart player movements capture
+                update_map(bufmap);
                 if(!isRunning){
                     isRunning = true;
                     pthread_create(&threadMap, NULL, thsend_move, (void *) cltTCP);
                 }
             }
-            else if(!strncmp(buffer_recv, "encounter poketudiant xp", 27))
+            else if(!strncmp(buffer_recv, "encounter poketudiant xp", 24))
             {
+                // stop to get movement of player
+                pthread_cancel(threadMap);
+                isRunning = false;
+
+                // show poketudiant exp gain
                 sscanf(buffer_recv, "encounter poketudiant xp %d %d", &ipoke, &poke.lvl);
-                printf("Pokétudiant %d gain %d experience\n", ipoke, poke.lvl);
-                get_msg("press any key to continue", buffer_send);
+                printf("\nPokétudiant %d gain %d experience\n", ipoke, poke.lvl);
+                get_msg("press enter to continue", buffer_send);
+
+                // update the map and restart player movements capture
+                update_map(bufmap);
+                if(!isRunning){
+                    isRunning = true;
+                    pthread_create(&threadMap, NULL, thsend_move, (void *) cltTCP);
+                }
             }
             else if(!strncmp(buffer_recv, "encounter poketudiant level", 27))
-            {
+            {   
+                // stop to get movement of player
+                pthread_cancel(threadMap);
+                isRunning = false;
+
+                // show poketudiant level up
                 sscanf(buffer_recv, "encounter poketudiant level %d %d", &ipoke, &poke.lvl);
-                printf("Pokétudiant %d level to level %d\n", ipoke, poke.lvl);
-                get_msg("press any key to continue", buffer_send);
+                printf("\nPokétudiant %d level to level %d\n", ipoke, poke.lvl);
+                get_msg("press enter to continue", buffer_send);
+
+                // update the map and restart player movements capture
+                update_map(bufmap);
+                if(!isRunning){
+                    isRunning = true;
+                    pthread_create(&threadMap, NULL, thsend_move, (void *) cltTCP);
+                }
             }
             else if(!strncmp(buffer_recv, "encounter poketudiant evolution", 27))
             {
-                sscanf(buffer_recv, "encounter poketudiant evolution %d %s", &ipoke, poke.variety);
-                printf("Pokétudiant %d evolve in %s %s\n", ipoke, get_pokemoji(poke), poke.variety);
-                get_msg("press any key to continue", buffer_send);
-            }            
-            
-        }
-    }while(!isExit);
+                // stop to get movement of player
+                pthread_cancel(threadMap);
+                isRunning = false;
 
+                // show poketudiant evolve
+                sscanf(buffer_recv, "encounter poketudiant evolution %d %s", &ipoke, poke.variety);
+                printf("\nPokétudiant %d evolve in %s %s\n", ipoke, get_pokemoji(poke), poke.variety);
+                get_msg("press enter to continue", buffer_send);
+
+                // update the map and restart player movements capture
+                update_map(bufmap);
+                if(!isRunning){
+                    isRunning = true;
+                    pthread_create(&threadMap, NULL, thsend_move, (void *) cltTCP);
+                }
+            }            
+        }
+    }while(!isExit); // if player enter exit quit the party
+
+    // end team interface
     write(fifoTeam, "exit", 4);
     close(fifoTeam);
 
+    // end tchat interface
     write(fifoTchat, "exit", 4);
     close(fifoTchat);
 
+    // delete fifo
     unlink("IN_Team.fifo");
     unlink("OUT_Team.fifo");
     unlink("IN_Tchat.fifo");
