@@ -575,7 +575,7 @@ void start_fight(struct clientTCP *cltTCP, char *buffer_recv, char *buffer_send,
                 if(!pokesel && msg[0] != '0'){
                     pokesel = -1;
                 }
-            }while(pokesel < 0 && pokesel >= *nbpoke);
+            }while(pokesel < 0 || pokesel >= *nbpoke);
             sprintf(msg, "%d\n", pokesel);
 
             strcpy(buffer_send, "encounter poketudiant index ");
