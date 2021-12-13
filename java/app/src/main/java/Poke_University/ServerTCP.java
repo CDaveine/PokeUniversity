@@ -144,7 +144,7 @@ class ServerTCP implements Closeable, Runnable {
                         // move sur la map
                         if (read.contains("map move")) {
                             String move = read.substring(9);
-                            serv.move_to(move, this, this.game);
+                            serv.move_to(move, this, this.game, in, out);
                             String team = serv.team(this);
                             out.println(team);
                             for (int i = 0; i < serv.size_games(serv.games); i++) {

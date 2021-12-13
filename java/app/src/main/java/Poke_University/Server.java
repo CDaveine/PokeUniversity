@@ -1,6 +1,9 @@
 package Poke_University;
 
 import Poke_University.ServerTCP.ClientHandler;
+
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.lang.Math;
 import java.util.Random;
 
@@ -86,7 +89,7 @@ public class Server {
         return null;
     }
 
-    public void move_to(String move, ClientHandler joueur, Game game) {
+    public void move_to(String move, ClientHandler joueur, Game game, BufferedReader in, PrintWriter out) {
         if (move.equals("up")) {
             if (joueur.position_x != 0) {
                 joueur.position_x--;
@@ -127,12 +130,12 @@ public class Server {
             Random rand = new Random();
             int rd = rand.nextInt(11);
             if (rd <= 2) {
-                joueur.dresseur.combat_sauvage(joueur);
+                joueur.dresseur.combat_sauvage(joueur, in, out);
             }
         } else if (map[joueur.position_x][joueur.position_y] == '1' || map[joueur.position_x][joueur.position_y] == '2'
                 || map[joueur.position_x][joueur.position_y] == '3'
                 || map[joueur.position_x][joueur.position_y] == '4') {
-            joueur.dresseur.combat_player(joueur, map[joueur.position_x][joueur.position_y]);
+            joueur.dresseur.combat_player(joueur, map[joueur.position_x][joueur.position_y], in, out);
         }
 
     }
