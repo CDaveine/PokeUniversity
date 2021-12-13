@@ -136,7 +136,7 @@ public class Server {
             }
         }
         char[][] map = game.getMap(joueur).map_tab(game.getMap(joueur)
-                .read("/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map"));
+                .read(game.map_path));
         // heal
         if (map[joueur.position_x][joueur.position_y] == '+') {
             for (int i = 0; i < joueur.dresseur.size_poke(); i++) {

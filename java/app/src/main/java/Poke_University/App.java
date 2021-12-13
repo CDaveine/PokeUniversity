@@ -12,18 +12,6 @@ public class App {
 
     public static void main(String[] args) {
         System.out.println(new App().getGreeting());
-        Attacks att = new Attacks();
-        try (ServerUDP serverUDP = new ServerUDP()) {
-            Thread threadUDP = new Thread(serverUDP);
-            threadUDP.start();
-        }
-        while (true) {
-            try (ServerTCP serverTCP = new ServerTCP()) {
-                serverTCP.run();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
 
         Scanner scan = new Scanner(System.in);
         System.out.println("Enter the complete path of your world map:");
