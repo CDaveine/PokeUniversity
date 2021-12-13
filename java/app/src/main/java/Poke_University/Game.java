@@ -20,11 +20,6 @@ public class Game {
         return map = new World("/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map", joueur, this);
     }
 
-    public World getMap_without(ClientHandler joueur){
-        World map = new World("/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map", joueur, this);
-        
-    }
-
     public void setMap(World map) {
         this.map = map;
     }

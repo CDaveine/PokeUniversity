@@ -234,6 +234,7 @@ public abstract class Poketudiant {
 
     protected boolean capture(Poketudiant opponent, ClientHandler player) {
         double chance = 2 * Math.max((1 / 2.0) - (opponent.PV_current / (opponent.PV_max * 1.0)), 0);
+        System.out.println(chance + " "+opponent.PV_current + " "+ opponent.PV_max);
         double rand = Math.random();
         if (rand <= chance && player.dresseur.size_poke() < 3) {
             player.dresseur.setPoketudiants(player.dresseur.size_poke(), opponent);
@@ -398,10 +399,13 @@ public abstract class Poketudiant {
                     }
                     // catch
                 } else if (read.contains("encounter action catch")) {
+                    System.out.println("ici");
                     if (capture(sauvage, player)) {
+                        System.out.println("test");
                         out.println("encounter catch ok");
                         fin = true;
                     } else {
+                        System.out.println("merde");
                         out.println("encounter catch fail");
                     }
                     // leave

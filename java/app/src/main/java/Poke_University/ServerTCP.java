@@ -105,9 +105,6 @@ class ServerTCP implements Closeable, Runnable {
                             if (serv.creation_game(read, this)) {
                                 out.println("game created");
                                 dresseur = new Enseignant_dresseur();
-                                Alabourre ala = new Alabourre();
-                                dresseur.setPoketudiants(1, ala);
-                                ala.PV_current = ala.PV_max - 20;
                                 String team = serv.team(this);
                                 out.println(team);
                                 World world = serv.games[serv.size_games(serv.games) - 1].getMap(this);

@@ -74,8 +74,8 @@ public class Server {
                 if (games[i].getNb_player() < 4) {
                     games[i].setNb_player(games[i].getNb_player() + 1);
                     games[i].setPlayers(joueur);
-                    joueur.position_x = 1;
-                    joueur.position_y = 1;
+                    joueur.position_x = 0;
+                    joueur.position_y = 0;
                     joueur.id = games[i].getNb_player();
                     joueur.game = games[i];
                     return titre;
@@ -90,33 +90,49 @@ public class Server {
     }
 
     public void move_to(String move, ClientHandler joueur, Game game, BufferedReader in, PrintWriter out) {
+        //char[][] plan = game.getMap(joueur).map_tab(game.getMap(joueur)
+        //      .map_modified(
+          //              "/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map",
+            //            joueur, game));
         if (move.equals("up")) {
             if (joueur.position_x != 0) {
+                /*if (plan[joueur.position_x - 1][joueur.position_y] == '1'
+                        || plan[joueur.position_x - 1][joueur.position_y] == '2'
+                        || plan[joueur.position_x - 1][joueur.position_y] == '3'
+                        || plan[joueur.position_x - 1][joueur.position_y] == '4') {
+                    joueur.dresseur.combat_player(joueur, plan[joueur.position_x - 1][joueur.position_y], in, out);
+                }*/
                 joueur.position_x--;
-                System.out.println(game.getMap(joueur).cols(game.getMap(joueur).getMap()));
-                System.out.println(joueur.position_y + " " + joueur.position_x);
-
             }
         } else if (move.equals("left")) {
             if (joueur.position_y != 0) {
+                /*if (plan[joueur.position_x][joueur.position_y - 1] == '1'
+                        || plan[joueur.position_x][joueur.position_y - 1] == '2'
+                        || plan[joueur.position_x][joueur.position_y - 1] == '3'
+                        || plan[joueur.position_x][joueur.position_y - 1] == '4') {
+                    joueur.dresseur.combat_player(joueur, plan[joueur.position_x][joueur.position_y + 1], in, out);
+                }*/
                 joueur.position_y--;
-                System.out.println(game.getMap(joueur).cols(game.getMap(joueur).getMap()));
-                System.out.println(joueur.position_y + " " + joueur.position_x);
-
             }
         } else if (move.equals("down")) {
             if (joueur.position_x != game.getMap(joueur).cols(game.getMap(joueur).getMap())) {
+                /*if (plan[joueur.position_x + 1][joueur.position_y] == '1'
+                        || plan[joueur.position_x + 1][joueur.position_y] == '2'
+                        || plan[joueur.position_x + 1][joueur.position_y] == '3'
+                        || plan[joueur.position_x + 1][joueur.position_y] == '4') {
+                    joueur.dresseur.combat_player(joueur, plan[joueur.position_x + 1][joueur.position_y], in, out);
+                }*/
                 joueur.position_x++;
-                System.out.println(game.getMap(joueur).cols(game.getMap(joueur).getMap()));
-                System.out.println(joueur.position_y + " " + joueur.position_x);
-
             }
         } else if (move.equals("right")) {
             if (joueur.position_y != game.getMap(joueur).rows(game.getMap(joueur).getMap())) {
+                /*if (plan[joueur.position_x][joueur.position_y + 1] == '1'
+                        || plan[joueur.position_x][joueur.position_y + 1] == '2'
+                        || plan[joueur.position_x][joueur.position_y + 1] == '3'
+                        || plan[joueur.position_x][joueur.position_y + 1] == '4') {
+                    joueur.dresseur.combat_player(joueur, plan[joueur.position_x][joueur.position_y + 1], in, out);
+                }*/
                 joueur.position_y++;
-                System.out.println(game.getMap(joueur).cols(game.getMap(joueur).getMap()));
-                System.out.println(joueur.position_y + " " + joueur.position_x);
-
             }
         }
         char[][] map = game.getMap(joueur).map_tab(game.getMap(joueur)
@@ -132,10 +148,6 @@ public class Server {
             if (rd <= 2) {
                 joueur.dresseur.combat_sauvage(joueur, in, out);
             }
-        } else if (map[joueur.position_x][joueur.position_y] == '1' || map[joueur.position_x][joueur.position_y] == '2'
-                || map[joueur.position_x][joueur.position_y] == '3'
-                || map[joueur.position_x][joueur.position_y] == '4') {
-            joueur.dresseur.combat_player(joueur, map[joueur.position_x][joueur.position_y], in, out);
         }
 
     }
