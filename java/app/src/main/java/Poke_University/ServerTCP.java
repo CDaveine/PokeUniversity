@@ -197,6 +197,7 @@ class ServerTCP implements Closeable, Runnable {
 
                 } catch (IOException e) {
                     e.printStackTrace();
+                    break;
                 }
 
                 /*
