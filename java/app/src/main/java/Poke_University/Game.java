@@ -3,6 +3,7 @@ package Poke_University;
 import Poke_University.ServerTCP.ClientHandler;
 
 public class Game {
+    public static String map_path;
     private int nb_player;
     private String game_name;
     private ClientHandler[] players;
@@ -13,11 +14,11 @@ public class Game {
         this.game_name = s;
         players = new ClientHandler[4];
         players[0] = creator;
-        map = new World("/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map", creator, this);
+        map = new World(map_path, creator, this);
     }
 
     public World getMap(ClientHandler joueur) {
-        return map = new World("/home/mint/Documents/2021/Res/projet-bd/java/app/src/main/java/Poke_University/world.map", joueur, this);
+        return map = new World(map_path, joueur, this);
     }
 
     public void setMap(World map) {
