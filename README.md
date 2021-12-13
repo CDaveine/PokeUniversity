@@ -19,6 +19,7 @@ Nous avons utilisé gradle pour l'architecture de l'application le code source c
 
 Pour run le code ou build il y a un éxécutable gradlew qui permet de faire ./gradlew run ou ./gradlew build jar.
 Si vous lancer un build le résultat se trouve dans app/build.
+Au lancement du serveur le chemin vers la carte sera demandé.
 
 ## Partie Client
 
